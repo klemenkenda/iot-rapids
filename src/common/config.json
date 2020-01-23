@@ -1,0 +1,17 @@
+{
+    "storage": {
+        "rapids-iot": {
+            "host": "localhost",
+            "root_password": "example",
+            "user": "rapidsiot",
+            "password": "Th0uSha11S4v3",
+            "db": "rapidsiot"
+        }
+    },
+    "service": {
+        "server": {
+            "port": 5000
+        }
+    }
+
+}
