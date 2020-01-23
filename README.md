@@ -1,0 +1,2 @@
+# rapids-iot
+A suite for managing IoT data, parsing of web resources, etc. The suite is tightly coupled with [iot-fusion](https://github.com/klemenkenda/iot-fusion) and [ml-rapids](https://github.com/JozefStefanInstitute/ml-rapids).
