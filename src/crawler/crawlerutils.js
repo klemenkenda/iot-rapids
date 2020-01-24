@@ -87,14 +87,19 @@ class CrawlerUtils {
             const html = await this.getURLPromise(url);
             return html;
         } catch(e) {
-            console.log(e);
+            throw(e);
         }
     }
 
     static getURLPromise(url) {
         return new Promise((resolve, reject) => {
             https.get(url, (res) => {
-                if (res.statusCode != 200) reject(res.statusCode);
+                if (res.statusCode != 200) {
+                    reject(new Error('Wrong HTTP status code ' + res.statusCode));
+                }
+
+                // repeat until desired length is received
+                // TODO: handle timeouts!
                 const doc_length = res.headers['content-length'];
                 let length = 0;
                 let html = "";
