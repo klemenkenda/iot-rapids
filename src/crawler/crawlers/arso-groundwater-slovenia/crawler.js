@@ -1,5 +1,5 @@
 // imports
-const CrawlerUtils = require('../crawlerutils');
+const CrawlerUtils = require('../../crawlerutils');
 
 export default class ArsoGroundwaterSloveniaCrawler {
 
