@@ -1,7 +1,7 @@
 // imports
 const CrawlerUtils = require('../../crawlerutils');
 
-export default class ArsoGroundwaterSloveniaCrawler {
+class GorivaSiCrawler {
 
     /**
      * Responsible for loading state
@@ -40,6 +40,9 @@ export default class ArsoGroundwaterSloveniaCrawler {
      */
     load() {
         // load the data from datalake into the db
+        return this.config.id;
     }
 
 }
+
+module.exports = GorivaSiCrawler;

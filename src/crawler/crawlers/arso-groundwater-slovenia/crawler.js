@@ -1,7 +1,7 @@
 // imports
 const CrawlerUtils = require('../../crawlerutils');
 
-export default class ArsoGroundwaterSloveniaCrawler {
+class ArsoGroundwaterSloveniaCrawler {
 
     /**
      * Responsible for loading state
@@ -43,3 +43,5 @@ export default class ArsoGroundwaterSloveniaCrawler {
     }
 
 }
+
+module.exports = ArsoGroundwaterSloveniaCrawler;

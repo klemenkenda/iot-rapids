@@ -1,5 +1,10 @@
+// imports
 const fs = require('fs');
 
+/**
+ * A class for different utils for working with crawlers in
+ * rapids-iot.
+ */
 class CrawlerUtils {
 
     /**
@@ -60,8 +65,8 @@ class CrawlerUtils {
         let crawlers = [];
         let list = fs.readdirSync(dir);
         list.forEach((el, i) => {
-            console.log(el, i);
             crawlers.push({
+                dir: dir + "/" + el,
                 config: this.loadConfig(dir + "/" + el),
                 state: this.loadState(dir + "/" + el),
             });
