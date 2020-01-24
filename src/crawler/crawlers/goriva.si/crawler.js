@@ -20,18 +20,19 @@ class GorivaSiCrawler {
      * also historic data if needed). Crawler should do everything that
      * is needed.
      */
-    crawl() {
+    async crawl() {
         // do the crawling here
-
+        const html = await CrawlerUtils.getURL(this.config.start);
+        console.log(html);
         // update datalake repository with the crawled data
 
         // update the state with the last crawled timestamp
 
         // update state
-        state.lastts = new Date("2020-01-01T10:10:10Z").getTime();
+        this.state.lastts = new Date("2020-01-01T10:10:10Z").getTime();
 
         // write final state
-        CrawlerUtils.saveState(__dirname, state);
+        CrawlerUtils.saveState(__dirname, this.state);
 
     }
 

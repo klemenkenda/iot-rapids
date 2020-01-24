@@ -1,5 +1,6 @@
 // imports
 const fs = require('fs');
+const https = require('https');
 
 /**
  * A class for different utils for working with crawlers in
@@ -74,6 +75,43 @@ class CrawlerUtils {
 
         return crawlers;
     }
+
+    /**
+     * Returns data from URL. Uses auxilary functin getURLPromise(url).
+     * See below.
+     *
+     * @param {string} url URL to retrieve data from.
+     */
+    static async getURL(url) {
+        try {
+            const html = await this.getURLPromise(url);
+            return html;
+        } catch(e) {
+            console.log(e);
+        }
+    }
+
+    static getURLPromise(url) {
+        return new Promise((resolve, reject) => {
+            https.get(url, (res) => {
+                if (res.statusCode != 200) reject(res.statusCode);
+                const doc_length = res.headers['content-length'];
+                let length = 0;
+                let html = "";
+                res.on('data', d => {
+                    length += d.length;
+                    html += d;
+
+                    if (length == doc_length) {
+                        resolve(html.toString('UTF-8'));
+                    }
+                })
+            }).on('error', (e) => {
+                reject(e);
+            })
+        })
+    }
+
 }
 
 module.exports = CrawlerUtils;

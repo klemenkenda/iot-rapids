@@ -14,4 +14,4 @@ crawler_configs.forEach((crawler, i) => {
 
 });
 
-console.log(crawlers[1].load(), crawlers[1].config);
+crawlers[1].crawl();
