@@ -50,7 +50,7 @@ class GorivaSiCrawler {
 
             fields.forEach((f, j) => {
                 if (f.classNames[0] === 'selection') {
-                    last_id = f.querySelector('input').rawAttributes.value;
+                    last_id = parseInt(f.querySelector('input').rawAttributes.value);
                 } else if (f.classNames[0] === 'fuel.code') {
                     fuel_code = f.firstChild.rawText;
                 } else if (f.classNames[0] === 'place.name') {
@@ -60,7 +60,7 @@ class GorivaSiCrawler {
                 } else if (f.classNames[0] === 'address') {
                     address = f.firstChild.rawText;
                 } else if (f.classNames[0] === 'price') {
-                    price = f.firstChild.rawText;
+                    price = parseFloat(f.firstChild.rawText.replace(',', '.'));
                 } else if (f.classNames[0] === 'active_from') {
                     active_from = f.firstChild.rawText;
                 } else if (f.classNames[0] === 'active_to') {
@@ -86,6 +86,7 @@ class GorivaSiCrawler {
             };
 
             console.log(record);
+            // todo - parse dates
 
         })
 
