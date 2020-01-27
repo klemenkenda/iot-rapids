@@ -128,7 +128,11 @@ class GorivaSiCrawler {
                 address: address,
                 price: price,
                 active_from: moment(active_from, "D.M.Y. H:m").toDate(),
+                /*
+                // we are leaving active_to out, because it is often
+                // not defined in the "incoming stream"
                 active_to: moment(active_to, "D.M.Y. H:m").toDate(),
+                */
                 franchise: franchise,
                 view_link: view_link
             };
