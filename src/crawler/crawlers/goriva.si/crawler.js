@@ -44,7 +44,7 @@ class GorivaSiCrawler {
             }
             records.push(await this.getRecords());
 
-            console.log(runs, this.state.page);
+            console.log("Crawling: run =", runs, " page =", this.state.page);
 
             // did we reach last page
             if (this.state.page === this.state.max_page) {
@@ -57,11 +57,9 @@ class GorivaSiCrawler {
 
         // find last page, parse the data from all earlier pages until
         // getting the last record from before
-        console.log(records);
+        this.records = records;
 
         // update datalake repository with the crawled data
-
-        // update the state with the last crawled timestamp
 
         // update state
         this.state.lastrun = new Date().getTime();
@@ -147,12 +145,21 @@ class GorivaSiCrawler {
             const value = el.rawAttributes.href === undefined ? -1 : parseInt(el.rawAttributes.href.replace(/\D/g, ''));
             return(isNaN(value) ? -1 : value);
         });
-
         this.state.max_page = Math.max(...pages);
 
-        return records;
+        return(records);
     }
 
+
+    /**
+     * Saving records to data-lake and to database.
+     */
+    save() {
+        // save to data lake
+
+
+        // save to data base
+    }
 
     /**
      * Loads the datalake data into the database.
