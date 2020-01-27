@@ -53,6 +53,9 @@ class GorivaSiCrawler {
     }
 
 
+    /**
+     * Get data records for a particular page.
+     */
     async getRecords() {
         let url = this.config.start + "?page=" + this.state.page;
         let records = [];
@@ -114,6 +117,16 @@ class GorivaSiCrawler {
 
             records.push(record);
         });
+
+        // parse last page
+        const pagination = root.querySelectorAll(".pagination li a");
+
+        let pages = pagination.map((el, i) => {
+            const value = parseInt(el.rawAttributes.href.replace(/\D/g, ''));
+            return(isNaN(value) ? -1 : value);
+        });
+
+        this.state.max_page = Math.max(...pages);
 
         return records;
     }

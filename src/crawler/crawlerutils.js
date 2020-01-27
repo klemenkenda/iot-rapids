@@ -41,7 +41,7 @@ class CrawlerUtils {
      * @param {json} state State JSON.
      */
     static saveState(dirname, state) {
-        const json = JSON.stringify(state, 4);
+        const json = JSON.stringify(state, null, 4);
         fs.writeFileSync(dirname + '/state.json', json);
     }
 
