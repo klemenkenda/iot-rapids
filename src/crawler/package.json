@@ -9,6 +9,7 @@
   "author": "Klemen Kenda",
   "license": "GPL-3.0",
   "dependencies": {
+    "moment": "^2.24.0",
     "node-html-parser": "^1.1.18"
   }
 }

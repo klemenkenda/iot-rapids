@@ -1,4 +1,6 @@
 // imports
+const moment = require('moment');
+
 const CrawlerUtils = require('../../crawlerutils');
 const parse = require('node-html-parser').parse;
 
@@ -28,7 +30,32 @@ class GorivaSiCrawler {
         if (this.state.page === undefined) {
             this.state.page = 1;
         }
+
+        if (this.state.last_record === undefined) {
+            this.state.last_record = -1;
+        }
+
+        let records = await this.getRecords();
+
+        // find last page, parse the data from all earlier pages until
+        // getting the last record from before
+        console.log(records);
+
+        // update datalake repository with the crawled data
+
+        // update the state with the last crawled timestamp
+
+        // update state
+        this.state.lastrun = new Date().getTime();
+
+        // write final state
+        CrawlerUtils.saveState(__dirname, this.state);
+    }
+
+
+    async getRecords() {
         let url = this.config.start + "?page=" + this.state.page;
+        let records = [];
         const html = await CrawlerUtils.getURL(url);
 
         const root = parse(html);
@@ -79,32 +106,18 @@ class GorivaSiCrawler {
                 place_address: place_address,
                 address: address,
                 price: price,
-                active_from: active_from,
-                active_to: active_to,
+                active_from: moment(active_from, "D.M.Y. H:m").toDate(),
+                active_to: moment(active_to, "D.M.Y. H:m").toDate(),
                 franchise: franchise,
                 view_link: view_link
             };
 
-            console.log(record);
-            // todo - parse dates
+            records.push(record);
+        });
 
-        })
-
-        // find last page, parse the data from all earlier pages until
-        // getting the last record from before
-
-
-        // update datalake repository with the crawled data
-
-        // update the state with the last crawled timestamp
-
-        // update state
-        this.state.lastts = new Date("2020-01-01T10:10:10Z").getTime();
-
-        // write final state
-        CrawlerUtils.saveState(__dirname, this.state);
-
+        return records;
     }
+
 
     /**
      * Loads the datalake data into the database.
