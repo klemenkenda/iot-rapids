@@ -35,7 +35,25 @@ class GorivaSiCrawler {
             this.state.last_record = -1;
         }
 
-        let records = await this.getRecords();
+        let last_page = false;
+        let runs = 0;
+        let records = [];
+        while ((runs < this.config.max_runs) && (last_page === false)) {
+            if (runs !== 0) {
+                this.state.page++;
+            }
+            records.push(await this.getRecords());
+
+            console.log(runs, this.state.page);
+
+            // did we reach last page
+            if (this.state.page === this.state.max_page) {
+                last_page = true;
+            }
+
+            // number of runs
+            runs++;
+        }
 
         // find last page, parse the data from all earlier pages until
         // getting the last record from before
@@ -122,7 +140,7 @@ class GorivaSiCrawler {
         const pagination = root.querySelectorAll(".pagination li a");
 
         let pages = pagination.map((el, i) => {
-            const value = parseInt(el.rawAttributes.href.replace(/\D/g, ''));
+            const value = el.rawAttributes.href === undefined ? -1 : parseInt(el.rawAttributes.href.replace(/\D/g, ''));
             return(isNaN(value) ? -1 : value);
         });
 

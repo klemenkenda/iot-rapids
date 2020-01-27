@@ -2,5 +2,6 @@
     "id": "goriva.si",
     "data-lake-type": "csv",
     "start": "https://goriva.si/goriva/price/",
-    "update": "1d"
+    "update": "1d",
+    "max_runs": 3
 }
