@@ -5,13 +5,13 @@ const moment = require('moment')
 
 class ArsoWaterSloveniaCrawler {
 
-    constructor(watter_type, URL_file, data_file) {
-        this.watter_type = watter_type
-        if (this.watter_type == 'sw') {
+    constructor(water_type, URL_file, data_file) {
+        this.water_type = water_type
+        if (this.water_type == 'sw') {
             this.URL = 'http://www.arso.gov.si/vode/podatki/amp/Ht_30.html'
             this.base_URL = 'http://www.arso.gov.si/vode/podatki/amp/'
             this.time_parse = 'DD.MM.YYYY hh:mm'
-        } else if (this.watter_type == 'gw') {
+        } else if (this.water_type == 'gw') {
             this.URL = 'http://www.arso.gov.si/vode/podatki/podzem_vode_amp/podt_30.html'
             this.base_URL = 'http://www.arso.gov.si/vode/podatki/podzem_vode_amp/'
             this.time_parse = 'DD-MM-YYYY hh:mm'
@@ -125,9 +125,9 @@ class ArsoWaterSloveniaCrawler {
             if (get_out) {
                 return false
             }
-            if(self.watter_type == 'gw' && new_data[1] == '-' && new_data[2] == '-') {
+            if(self.water_type == 'gw' && new_data[1] == '-' && new_data[2] == '-') {
                 // do not write when no data for ground water
-            } else if (self.watter_type == 'sw' && new_data[1] == '-' && new_data[2] == '-' && new_data[3] == '-') {
+            } else if (self.water_type == 'sw' && new_data[1] == '-' && new_data[2] == '-' && new_data[3] == '-') {
                 // do not write when no data for surface water
             } else {
                 data.push(new_data)
@@ -149,8 +149,8 @@ class ArsoWaterSloveniaCrawler {
     }
 }
 
-var cr_sur = new ArsoWaterSloveniaCrawler(watter_type='sw', URL_file='linksSurface.txt', data_file='./data_surfacewatter/')
-var cr_gr = new ArsoWaterSloveniaCrawler(watter_type='gw', URL_file='linksGround.txt', data_file='./data_groundwater/')
+var cr_sur = new ArsoWaterSloveniaCrawler(water_type='sw', URL_file='linksSurface.txt', data_file='./data_surfacewater/')
+var cr_gr = new ArsoWaterSloveniaCrawler(water_type='gw', URL_file='linksGround.txt', data_file='./data_groundwater/')
 
 //cr_sur.getURLs()
 //cr_gr.getURLs()
