@@ -10,11 +10,11 @@ class ArsoWaterSloveniaCrawler {
         if (this.watter_type == 'sw') {
             this.URL = 'http://www.arso.gov.si/vode/podatki/amp/Ht_30.html'
             this.base_URL = 'http://www.arso.gov.si/vode/podatki/amp/'
-            this.tme_parse = 'DD.MM.YYYY hh:mm'
+            this.time_parse = 'DD.MM.YYYY hh:mm'
         } else if (this.watter_type == 'gw') {
             this.URL = 'http://www.arso.gov.si/vode/podatki/podzem_vode_amp/podt_30.html'
             this.base_URL = 'http://www.arso.gov.si/vode/podatki/podzem_vode_amp/'
-            this.tme_parse = 'DD-MM-YYYY hh:mm'
+            this.time_parse = 'DD-MM-YYYY hh:mm'
         }
         this.URL_file=URL_file
         this.data_file=data_file
