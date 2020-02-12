@@ -184,8 +184,6 @@ class CrawlerUtils {
 
         const filename = __dirname + '/data/' + config.dir + '/log-' + timeId + '.ldjson';
         fs.appendFileSync(filename, data + '\n');
-
-        console.log(filename, config.type, timeId);
     }
 }
 
