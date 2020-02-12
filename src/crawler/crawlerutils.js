@@ -7,6 +7,7 @@ const https = require('https');
  * rapids-iot.
  */
 class CrawlerUtils {
+
     /**
      * Loads crawler's state from the corresponding directory.
      *
@@ -125,6 +126,52 @@ class CrawlerUtils {
                 reject(e);
             });
         });
+    }
+
+    static getWeekNumber(d) {
+        // Copy date so don't modify original
+        d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+        // Set to nearest Thursday: current date + 4 - current day number
+        // Make Sunday's day number 7
+        d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay()||7));
+        // Get first day of year
+        var yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+        // Calculate full weeks to nearest Thursday
+        var weekNo = Math.ceil(( ( (d - yearStart) / 86400000) + 1)/7);
+        // Return array of year and week number
+        return weekNo;
+    }
+
+    /**
+     * Returns day of in the year.
+     * @param {Date} d Date you want to extract day of year.
+     * @return {number} Day of year.
+     */
+    static getDayOfYear(d) {
+        let start = new Date(d.getFullYear(), 0, 0);
+        let diff = (d - start) + ((start.getTimezoneOffset() - d.getTimezoneOffset()) * 60 * 1000);
+        var oneDay = 1000 * 60 * 60 * 24;
+        var day = Math.floor(diff / oneDay);
+        return day;
+    }
+
+    static saveToDataLake(data, ts, config) {
+        const d = new Date(ts);
+        let timeId = "";
+
+        if (config.type === "hourly") {
+            timeId = "-" + d.getFullYear() + "-d" + this.getDayOfYear(d) + "-h" + d.getHours();
+        } else if (config.type === "daily") {
+            timeId = "-" + d.getFullYear() + "-d" + this.getDayOfYear(d);
+        } else if (config.type === "weekly") {
+            timeId = "-" + d.getFullYear() + "-w" + this.getWeekNumber(d);
+        } else if (config.type === "monthly") {
+            timeId = "-" + d.getFullYear() + "-m" + (d.getMonth() + 1);
+        } else if (config.type === "yearly") {
+            timeId = "-" + d.getFullYear();
+        }
+
+        console.log(config.type, timeId);
     }
 }
 

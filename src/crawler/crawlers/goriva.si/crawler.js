@@ -63,7 +63,17 @@ class GorivaSiCrawler {
         this.records = records;
 
         // update datalake repository with the crawled data
-        console.log(records);
+        const line = JSON.stringify([].concat(...records));
+        const ts = records[0][0].activeFrom.getTime();
+
+        console.log(records[0][0].activeFrom);
+
+        CrawlerUtils.saveToDataLake(line, ts, {
+            dir: this.config.id,
+            type: this.config.log_type
+        });
+        // update database
+        // TODO
 
         // update state
         this.state.lastrun = new Date().getTime();
@@ -100,8 +110,6 @@ class GorivaSiCrawler {
                 const fClassName = $(f).attr('class');
                 const rawText = $(f).text();
 
-                console.log(fClassName, rawText);
-
                 if (fClassName === 'selection') {
                     lastId = parseInt($(f).find('input').attr('value'));
                 } else if (fClassName === 'fuel.code') {
@@ -114,10 +122,10 @@ class GorivaSiCrawler {
                     address = rawText;
                 } else if (fClassName === 'price') {
                     price = parseFloat(rawText.replace(',', '.'));
-                } else if (fClassName === 'activeFrom') {
+                } else if (fClassName === 'active_from') {
                     activeFrom = rawText;
-                } else if (fClassName === 'activeTo') {
-                    activeTo = rawText;
+                } else if (fClassName === 'active_to') {
+                    // activeTo = rawText;
                 } else if (fClassName === 'franchise') {
                     franchise = rawText;
                 } else if (fClassName === 'viewLink') {
@@ -149,7 +157,6 @@ class GorivaSiCrawler {
         const pagination = $('.pagination li a');
 
         const pages = pagination.map((i, el) => {
-            console.log($(el).attr('href'));
             const value = $(el).attr('href') === undefined ?
                 -1 :
                 parseInt($(el).attr('href').replace(/\D/g, ''));
