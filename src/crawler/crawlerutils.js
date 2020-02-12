@@ -7,7 +7,6 @@ const https = require('https');
  * rapids-iot.
  */
 class CrawlerUtils {
-
     /**
      * Loads crawler's state from the corresponding directory.
      *
@@ -128,6 +127,11 @@ class CrawlerUtils {
         });
     }
 
+    /**
+     * Gets week number in a year.
+     * @param {date} d Date for which we seek week number.
+     * @return {number} Week number.
+     */
     static getWeekNumber(d) {
         // Copy date so don't modify original
         d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
@@ -135,9 +139,9 @@ class CrawlerUtils {
         // Make Sunday's day number 7
         d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay()||7));
         // Get first day of year
-        var yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+        const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
         // Calculate full weeks to nearest Thursday
-        var weekNo = Math.ceil(( ( (d - yearStart) / 86400000) + 1)/7);
+        const weekNo = Math.ceil(( ( (d - yearStart) / 86400000) + 1)/7);
         // Return array of year and week number
         return weekNo;
     }
@@ -148,31 +152,38 @@ class CrawlerUtils {
      * @return {number} Day of year.
      */
     static getDayOfYear(d) {
-        let start = new Date(d.getFullYear(), 0, 0);
-        let diff = (d - start) + ((start.getTimezoneOffset() - d.getTimezoneOffset()) * 60 * 1000);
-        var oneDay = 1000 * 60 * 60 * 24;
-        var day = Math.floor(diff / oneDay);
+        const start = new Date(d.getFullYear(), 0, 0);
+        const diff = (d - start) + ((start.getTimezoneOffset() - d.getTimezoneOffset()) * 60 * 1000);
+        const oneDay = 1000 * 60 * 60 * 24;
+        const day = Math.floor(diff / oneDay);
         return day;
     }
 
+    /**
+     * Saves data to correct data lake based on config.
+     *
+     * @param {string} data Data to be written to file.
+     * @param {number} ts Unix timestamp of the first record of the batch.
+     * @param {any} config JSON containing data for logging.
+     */
     static saveToDataLake(data, ts, config) {
         const d = new Date(ts);
-        let timeId = "";
+        let timeId = '';
 
-        if (config.type === "hourly") {
-            timeId = d.getFullYear() + "-d" + this.getDayOfYear(d) + "-h" + d.getHours();
-        } else if (config.type === "daily") {
-            timeId = d.getFullYear() + "-d" + this.getDayOfYear(d);
-        } else if (config.type === "weekly") {
-            timeId = d.getFullYear() + "-w" + this.getWeekNumber(d);
-        } else if (config.type === "monthly") {
-            timeId = d.getFullYear() + "-m" + (d.getMonth() + 1);
-        } else if (config.type === "yearly") {
+        if (config.type === 'hourly') {
+            timeId = d.getFullYear() + '-d' + this.getDayOfYear(d) + '-h' + d.getHours();
+        } else if (config.type === 'daily') {
+            timeId = d.getFullYear() + '-d' + this.getDayOfYear(d);
+        } else if (config.type === 'weekly') {
+            timeId = d.getFullYear() + '-w' + this.getWeekNumber(d);
+        } else if (config.type === 'monthly') {
+            timeId = d.getFullYear() + '-m' + (d.getMonth() + 1);
+        } else if (config.type === 'yearly') {
             timeId = d.getFullYear();
         }
 
-        const filename = __dirname + "/data/" + config.dir + "/log-" + timeId + ".ldjson";
-        fs.appendFileSync(filename, data + "\n");
+        const filename = __dirname + '/data/' + config.dir + '/log-' + timeId + '.ldjson';
+        fs.appendFileSync(filename, data + '\n');
 
         console.log(filename, config.type, timeId);
     }

@@ -70,7 +70,7 @@ class GorivaSiCrawler {
 
         CrawlerUtils.saveToDataLake(line, ts, {
             dir: this.config.id,
-            type: this.config.log_type
+            type: this.config.log_type,
         });
         // update database
         // TODO
