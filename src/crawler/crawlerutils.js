@@ -7,26 +7,27 @@ const https = require('https');
  * rapids-iot.
  */
 class CrawlerUtils {
-
     /**
      * Loads crawler's state from the corresponding directory.
      *
      * @param {string} dirname Current crawler directory name.
+     * @return {json} Loaded state.
      */
     static loadState(dirname) {
-        let json = "{}";
+        let json = '{}';
         let state = {};
 
         try {
             json = fs.readFileSync(dirname + '/state.json');
-        } catch(e) {
-            console.log("State file not read!");
+        } catch (e) {
+            console.log('State file not read!');
         }
 
         try {
             state = JSON.parse(json);
-        } catch(e) {
-            console.log("Error parsing state JSON. Saving a copy to state.old.json.")
+        } catch (e) {
+            console.log('Error parsing state JSON.' +
+                + 'Saving a copy to state.old.json.');
             fs.createReadStreamSync(dirname + '/state.json')
                 .pipe(fs.createWriteStream(dirname + '/state.old.json'));
         }
@@ -49,6 +50,7 @@ class CrawlerUtils {
      * Reads the config file in the corresponding directory.
      *
      * @param {string} dirname Current crawler directory name.
+     * @return {json} Config JSON.
      */
     static loadConfig(dirname) {
         const json = fs.readFileSync(dirname + '/config.json');
@@ -59,17 +61,19 @@ class CrawlerUtils {
     /**
      * Reads config.json and state.json and returns it for all the crawles
      * in the ./crawlers directory.
+     *
+     * @return {any} Array of crawlers.
      */
     static getCrawlers() {
-        // transverse crawlers folder
-        let dir = __dirname + "/crawlers";
-        let crawlers = [];
-        let list = fs.readdirSync(dir);
+    // transverse crawlers folder
+        const dir = __dirname + '/crawlers';
+        const crawlers = [];
+        const list = fs.readdirSync(dir);
         list.forEach((el, i) => {
             crawlers.push({
-                dir: dir + "/" + el,
-                config: this.loadConfig(dir + "/" + el),
-                state: this.loadState(dir + "/" + el),
+                dir: dir + '/' + el,
+                config: this.loadConfig(dir + '/' + el),
+                state: this.loadState(dir + '/' + el),
             });
         });
 
@@ -86,11 +90,17 @@ class CrawlerUtils {
         try {
             const html = await this.getURLPromise(url);
             return html;
-        } catch(e) {
-            throw(e);
+        } catch (e) {
+            throw (e);
         }
     }
 
+    /**
+     * Wrapper for getting the URL.
+     *
+     * @param {string} url URL address we are fetching.
+     * @return {Promis} Promise to the fetched url data.
+     */
     static getURLPromise(url) {
         return new Promise((resolve, reject) => {
             https.get(url, (res) => {
@@ -100,23 +110,22 @@ class CrawlerUtils {
 
                 // repeat until desired length is received
                 // TODO: handle timeouts!
-                const doc_length = res.headers['content-length'];
+                const docLength = res.headers['content-length'];
                 let length = 0;
-                let html = "";
-                res.on('data', d => {
+                let html = '';
+                res.on('data', (d) => {
                     length += d.length;
                     html += d;
 
-                    if (length == doc_length) {
+                    if (length == docLength) {
                         resolve(html.toString('UTF-8'));
                     }
-                })
+                });
             }).on('error', (e) => {
                 reject(e);
-            })
-        })
+            });
+        });
     }
-
 }
 
 module.exports = CrawlerUtils;

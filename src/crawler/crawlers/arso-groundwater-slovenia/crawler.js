@@ -1,8 +1,10 @@
 // imports
 const CrawlerUtils = require('../../crawlerutils');
 
+/**
+ * Class for ARSO Groundwater crawler.
+ */
 class ArsoGroundwaterSloveniaCrawler {
-
     /**
      * Responsible for loading state
      */
@@ -28,20 +30,18 @@ class ArsoGroundwaterSloveniaCrawler {
         // update the state with the last crawled timestamp
 
         // update state
-        state.lastts = new Date("2020-01-01T10:10:10Z").getTime();
+        state.lastts = new Date('2020-01-01T10:10:10Z').getTime();
 
         // write final state
         CrawlerUtils.saveState(__dirname, state);
-
     }
 
     /**
      * Loads the datalake data into the database.
      */
     load() {
-        // load the data from datalake into the db
+    // load the data from datalake into the db
     }
-
 }
 
 module.exports = ArsoGroundwaterSloveniaCrawler;

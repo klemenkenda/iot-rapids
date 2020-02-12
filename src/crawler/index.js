@@ -2,16 +2,14 @@
 const CrawlerUtils = require('./crawlerutils');
 
 // dynamically load all the crawlers
-let crawler_configs = CrawlerUtils.getCrawlers();
+const crawlerConfigs = CrawlerUtils.getCrawlers();
 
-let Crawlers = [];
-let crawlers = [];
+const Crawlers = [];
+const crawlers = [];
 
-crawler_configs.forEach((crawler, i) => {
-
-    Crawlers.push(require(crawler.dir + "/crawler.js"));
+crawlerConfigs.forEach((crawler, i) => {
+    Crawlers.push(require(crawler.dir + '/crawler.js'));
     crawlers.push(new Crawlers[i]());
-
 });
 
 crawlers[1].crawl();
