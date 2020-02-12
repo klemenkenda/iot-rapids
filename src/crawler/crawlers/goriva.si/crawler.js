@@ -2,7 +2,8 @@
 const moment = require('moment');
 
 const CrawlerUtils = require('../../crawlerutils');
-const parse = require('node-html-parser').parse;
+// const parse = require('node-html-parser').parse;
+const cheerio = require('cheerio');
 
 /**
  * Crawler for goriva.si.
@@ -62,6 +63,7 @@ class GorivaSiCrawler {
         this.records = records;
 
         // update datalake repository with the crawled data
+        console.log(records);
 
         // update state
         this.state.lastrun = new Date().getTime();
@@ -78,10 +80,10 @@ class GorivaSiCrawler {
         const records = [];
         const html = await CrawlerUtils.getURL(url);
 
-        const root = parse(html);
-        const table = root.querySelectorAll('tbody tr');
+        const $ = cheerio.load(html);
+        const table = $('tbody tr');
 
-        table.forEach((el, i) => {
+        table.each((i, el) => {
             let lastId;
             let fuelCode;
             let placeName;
@@ -92,30 +94,34 @@ class GorivaSiCrawler {
             let viewLink;
             let franchise;
 
-            const fields = el.querySelectorAll('td');
+            const fields = $(el).children('td');
 
-            fields.forEach((f, j) => {
-                if (f.classNames[0] === 'selection') {
-                    lastId = parseInt(f.querySelector('input')
-                        .rawAttributes.value);
-                } else if (f.classNames[0] === 'fuel.code') {
-                    fuelCode = f.firstChild.rawText;
-                } else if (f.classNames[0] === 'place.name') {
-                    placeName = f.firstChild.rawText;
-                } else if (f.classNames[0] === 'place.address') {
-                    placeAddress = f.firstChild.rawText;
-                } else if (f.classNames[0] === 'address') {
-                    address = f.firstChild.rawText;
-                } else if (f.classNames[0] === 'price') {
-                    price = parseFloat(f.firstChild.rawText.replace(',', '.'));
-                } else if (f.classNames[0] === 'activeFrom') {
-                    activeFrom = f.firstChild.rawText;
-                } else if (f.classNames[0] === 'activeTo') {
-                    activeTo = f.firstChild.rawText;
-                } else if (f.classNames[0] === 'franchise') {
-                    franchise = f.firstChild.rawText;
-                } else if (f.classNames[0] === 'viewLink') {
-                    viewLink = f.firstChild.rawText;
+            fields.each((j, f) => {
+                const fClassName = $(f).attr('class');
+                const rawText = $(f).text();
+
+                console.log(fClassName, rawText);
+
+                if (fClassName === 'selection') {
+                    lastId = parseInt($(f).find('input').attr('value'));
+                } else if (fClassName === 'fuel.code') {
+                    fuelCode = rawText;
+                } else if (fClassName === 'place.name') {
+                    placeName = rawText;
+                } else if (fClassName === 'place.address') {
+                    placeAddress = rawText;
+                } else if (fClassName === 'address') {
+                    address = rawText;
+                } else if (fClassName === 'price') {
+                    price = parseFloat(rawText.replace(',', '.'));
+                } else if (fClassName === 'activeFrom') {
+                    activeFrom = rawText;
+                } else if (fClassName === 'activeTo') {
+                    activeTo = rawText;
+                } else if (fClassName === 'franchise') {
+                    franchise = rawText;
+                } else if (fClassName === 'viewLink') {
+                    viewLink = rawText;
                 }
             });
 
@@ -140,14 +146,16 @@ class GorivaSiCrawler {
         });
 
         // parse last page
-        const pagination = root.querySelectorAll('.pagination li a');
+        const pagination = $('.pagination li a');
 
-        const pages = pagination.map((el, i) => {
-            const value = el.rawAttributes.href === undefined ?
+        const pages = pagination.map((i, el) => {
+            console.log($(el).attr('href'));
+            const value = $(el).attr('href') === undefined ?
                 -1 :
-                parseInt(el.rawAttributes.href.replace(/\D/g, ''));
+                parseInt($(el).attr('href').replace(/\D/g, ''));
             return (isNaN(value) ? -1 : value);
-        });
+        }).get();
+
         this.state.max_page = Math.max(...pages);
 
         return (records);
