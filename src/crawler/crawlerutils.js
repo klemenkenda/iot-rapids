@@ -160,18 +160,21 @@ class CrawlerUtils {
         let timeId = "";
 
         if (config.type === "hourly") {
-            timeId = "-" + d.getFullYear() + "-d" + this.getDayOfYear(d) + "-h" + d.getHours();
+            timeId = d.getFullYear() + "-d" + this.getDayOfYear(d) + "-h" + d.getHours();
         } else if (config.type === "daily") {
-            timeId = "-" + d.getFullYear() + "-d" + this.getDayOfYear(d);
+            timeId = d.getFullYear() + "-d" + this.getDayOfYear(d);
         } else if (config.type === "weekly") {
-            timeId = "-" + d.getFullYear() + "-w" + this.getWeekNumber(d);
+            timeId = d.getFullYear() + "-w" + this.getWeekNumber(d);
         } else if (config.type === "monthly") {
-            timeId = "-" + d.getFullYear() + "-m" + (d.getMonth() + 1);
+            timeId = d.getFullYear() + "-m" + (d.getMonth() + 1);
         } else if (config.type === "yearly") {
-            timeId = "-" + d.getFullYear();
+            timeId = d.getFullYear();
         }
 
-        console.log(config.type, timeId);
+        const filename = __dirname + "/data/" + config.dir + "/log-" + timeId + ".ldjson";
+        fs.appendFileSync(filename, data + "\n");
+
+        console.log(filename, config.type, timeId);
     }
 }
 
