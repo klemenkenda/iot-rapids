@@ -4,5 +4,5 @@
     "log_type": "yearly",
     "start": "https://goriva.si/goriva/price/",
     "update": "1d",
-    "max_runs": 1
+    "max_runs": 3
 }

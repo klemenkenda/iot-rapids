@@ -62,21 +62,27 @@ class GorivaSiCrawler {
             // getting the last record from before
             this.records = [].concat(...records);
 
-            // update datalake repository with the crawled data
-            const line = JSON.stringify(this.records);
-            const ts = records[0][0].activeFrom.getTime();
+            // filter records
+            this.records = this.records.filter(x => x.lastId > this.state.last_record);
 
-            CrawlerUtils.saveToDataLake(line, ts, {
-                dir: this.config.id,
-                type: this.config.log_type,
-            });
+            // update datalake repository with the crawled data
+            if (records.length > 0) {
+                const line = JSON.stringify(this.records);
+                const ts = records[0][0].activeFrom.getTime();
+
+                CrawlerUtils.saveToDataLake(line, ts, {
+                    dir: this.config.id,
+                    type: this.config.log_type,
+                });
+            }
+
             // update database
             // TODO
 
             // update state
             this.state.lastrun = new Date().getTime();
             try {
-                this.state.lastId = this.records.slice(-1)[0].lastId;
+                this.state.last_record = this.records.slice(-1)[0].lastId;
             } catch (e) {
                 console.log(e);
             }
