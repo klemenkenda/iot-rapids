@@ -175,7 +175,7 @@ class CrawlerUtils {
         } else if (config.type === 'daily') {
             timeId = d.getFullYear() + '-d' + this.getDayOfYear(d);
         } else if (config.type === 'weekly') {
-            timeId = d.getFullYear() + '-w' + this.getWeekNumber(d);
+            timeId = d.getFullYear() + '-w' + this.getWeekOfYear(d);
         } else if (config.type === 'monthly') {
             timeId = d.getFullYear() + '-m' + (d.getMonth() + 1);
         } else if (config.type === 'yearly') {
