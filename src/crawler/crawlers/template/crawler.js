@@ -20,11 +20,11 @@ class TemplateCrawler {
     }
 
     /**
-     * Responsible for crawling at this step.
+     * Responsible for crawling at one step.
      *
      * NOTE: Take care that the crawler is resistant to delays (it crawls
-     * also historic data if needed). Crawler should do everything that
-     * is needed.
+     * also historic data if needed). Crawler should provide all the steps
+     * denoted in the comments of this method.
      */
     crawl() {
         // do the crawling here
@@ -34,7 +34,6 @@ class TemplateCrawler {
         // update the state with the last crawled timestamp
 
         // update state
-        state.lastts = new Date('2020-01-01T10:10:10Z').getTime();
 
         // write final state
         CrawlerUtils.saveState(__dirname, state);
@@ -44,7 +43,7 @@ class TemplateCrawler {
      * Loads the datalake data into the database.
      */
     load() {
-    // load the data from datalake into the db
+        // load the data from datalake into the db
     }
 }
 
