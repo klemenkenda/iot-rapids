@@ -2,8 +2,8 @@
 const CrawlerUtils = require('../../crawlerutils');
 
 // external imports
-const cheerio = require('cheerio'); // handling DOM
-const moment = require('moment');   // handling time
+// const cheerio = require('cheerio'); // handling DOM
+// const moment = require('moment'); // handling time
 
 /**
  * Class for template crawler.
