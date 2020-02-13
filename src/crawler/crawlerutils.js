@@ -182,7 +182,7 @@ class CrawlerUtils {
             timeId = d.getFullYear();
         }
 
-        const filename = __dirname + '/data/' + config.dir + '/log-' + timeId + '.ldjson';
+        const filename = __dirname + '/../data/' + config.dir + '/log-' + timeId + '.ldjson';
         fs.appendFileSync(filename, data + '\n');
     }
 }

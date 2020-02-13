@@ -27,59 +27,62 @@ class GorivaSiCrawler {
      * is needed, including writing to database.
      */
     async crawl() {
-    // do the crawling here
-
-        // go to last parsed page
-        if (this.state.page === undefined) {
-            this.state.page = 1;
-        }
-
-        if (this.state.last_record === undefined) {
-            this.state.last_record = -1;
-        }
-
-        let lastPage = false;
-        let runs = 0;
-        const records = [];
-        while ((runs < this.config.max_runs) && (lastPage === false)) {
-            if (runs !== 0) {
-                this.state.page++;
-            }
-            records.push(await this.getRecords());
-
-            console.log('Crawling: run =', runs, ' page =', this.state.page);
-
-            // did we reach last page
-            if (this.state.page === this.state.max_page) {
-                lastPage = true;
+        // do the crawling here
+        try {
+            // go to last parsed page
+            if (this.state.page === undefined) {
+                this.state.page = 1;
             }
 
-            // number of runs
-            runs++;
+            if (this.state.last_record === undefined) {
+                this.state.last_record = -1;
+            }
+
+            let lastPage = false;
+            let runs = 0;
+            const records = [];
+            while ((runs < this.config.max_runs) && (lastPage === false)) {
+                if (runs !== 0) {
+                    this.state.page++;
+                }
+                records.push(await this.getRecords());
+
+                console.log('Crawling: run =', runs, ' page =', this.state.page);
+
+                // did we reach last page
+                if (this.state.page === this.state.max_page) {
+                    lastPage = true;
+                }
+
+                // number of runs
+                runs++;
+            }
+
+            // find last page, parse the data from all earlier pages until
+            // getting the last record from before
+            this.records = records;
+
+            // update datalake repository with the crawled data
+            const line = JSON.stringify([].concat(...records));
+            const ts = records[0][0].activeFrom.getTime();
+
+            console.log(records[0][0].activeFrom);
+
+            CrawlerUtils.saveToDataLake(line, ts, {
+                dir: this.config.id,
+                type: this.config.log_type,
+            });
+            // update database
+            // TODO
+
+            // update state
+            this.state.lastrun = new Date().getTime();
+
+            // write final state
+            CrawlerUtils.saveState(__dirname, this.state);
+        } catch (e) {
+            console.log("Error", e);
         }
-
-        // find last page, parse the data from all earlier pages until
-        // getting the last record from before
-        this.records = records;
-
-        // update datalake repository with the crawled data
-        const line = JSON.stringify([].concat(...records));
-        const ts = records[0][0].activeFrom.getTime();
-
-        console.log(records[0][0].activeFrom);
-
-        CrawlerUtils.saveToDataLake(line, ts, {
-            dir: this.config.id,
-            type: this.config.log_type,
-        });
-        // update database
-        // TODO
-
-        // update state
-        this.state.lastrun = new Date().getTime();
-
-        // write final state
-        CrawlerUtils.saveState(__dirname, this.state);
     }
 
     /**
