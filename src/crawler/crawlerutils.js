@@ -20,7 +20,7 @@ class CrawlerUtils {
         try {
             json = fs.readFileSync(dirname + '/state.json');
         } catch (e) {
-            console.log('State file not read!');
+            console.log('State file not read! New one will be created after save.');
         }
 
         try {
