@@ -65,7 +65,7 @@ class CrawlerUtils {
      * @return {any} Array of crawlers.
      */
     static getCrawlers() {
-    // transverse crawlers folder
+        // transverse crawlers folder
         const dir = __dirname + '/crawlers';
         const crawlers = [];
         const list = fs.readdirSync(dir);

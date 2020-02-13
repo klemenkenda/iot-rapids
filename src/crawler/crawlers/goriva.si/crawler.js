@@ -63,7 +63,7 @@ class GorivaSiCrawler {
             this.records = [].concat(...records);
 
             // filter records
-            this.records = this.records.filter(x => x.lastId > this.state.last_record);
+            this.records = this.records.filter((x) => x.lastId > this.state.last_record);
 
             // update datalake repository with the crawled data
             if (records.length > 0) {
