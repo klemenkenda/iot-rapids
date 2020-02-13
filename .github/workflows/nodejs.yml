@@ -17,9 +17,8 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
-    - run: cd src/crawler
-    - run: npm install
-    - run: npm run lint
-    - run: npm test
+    - run: cd src/crawler && npm install
+    - run: cd src/crawler && npm run lint
+    - run: cd src/crawler && npm test
       env:
         CI: true
