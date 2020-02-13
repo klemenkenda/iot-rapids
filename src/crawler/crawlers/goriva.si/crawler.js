@@ -60,13 +60,11 @@ class GorivaSiCrawler {
 
             // find last page, parse the data from all earlier pages until
             // getting the last record from before
-            this.records = records;
+            this.records = [].concat(...records);
 
             // update datalake repository with the crawled data
-            const line = JSON.stringify([].concat(...records));
+            const line = JSON.stringify(this.records);
             const ts = records[0][0].activeFrom.getTime();
-
-            console.log(records[0][0].activeFrom);
 
             CrawlerUtils.saveToDataLake(line, ts, {
                 dir: this.config.id,
@@ -77,11 +75,16 @@ class GorivaSiCrawler {
 
             // update state
             this.state.lastrun = new Date().getTime();
+            try {
+                this.state.lastId = this.records.slice(-1)[0].lastId;
+            } catch (e) {
+                console.log(e);
+            }
 
             // write final state
             CrawlerUtils.saveState(__dirname, this.state);
         } catch (e) {
-            console.log("Error", e);
+            console.log('Error', e);
         }
     }
 
