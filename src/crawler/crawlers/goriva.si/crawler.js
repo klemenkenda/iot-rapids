@@ -1,9 +1,9 @@
 // imports
-const moment = require('moment');
-
 const CrawlerUtils = require('../../crawlerutils');
-// const parse = require('node-html-parser').parse;
-const cheerio = require('cheerio');
+
+// external imports
+const cheerio = require('cheerio'); // handling DOM
+const moment = require('moment');   // handling time
 
 /**
  * Crawler for goriva.si.
