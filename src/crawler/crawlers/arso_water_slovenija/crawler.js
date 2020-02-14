@@ -38,8 +38,8 @@ class ArsoWaterSloveniaCrawler {
         const self = this;
         const links = await this.getURLs();
 
-        const lin = await CrawlerUtils.getURL('http://www.arso.gov.si/vode/podatki/amp/Ht_30.html')
-        console.log(lin)
+        const lin = await CrawlerUtils.getURL('http://www.arso.gov.si/vode/podatki/amp/Ht_30.html');
+        console.log(lin);
 
         for (let i = 0; i < links.length - 1; i++) {
             const url = links[i];
