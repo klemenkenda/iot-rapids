@@ -1,0 +1,11 @@
+{
+  "name": "gui-server",
+  "version": "0.0.1",
+  "description": "GUI server for rapids-iot",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha . --recursive"
+  },
+  "author": "AI lab (E3)",
+  "license": "GPL-3.0-or-later"
+}
