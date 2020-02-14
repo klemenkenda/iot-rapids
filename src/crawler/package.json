@@ -1,6 +1,6 @@
 {
   "name": "crawler",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "description": "Crawlers for rapids-iot",
   "main": "index.js",
   "scripts": {
