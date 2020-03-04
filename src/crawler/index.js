@@ -10,7 +10,6 @@ const Crawlers = [];
 const crawlers = [];
 
 crawlerConfigs.forEach((crawler, i) => {
-
     if (ActiveCrawlers.includes(crawler.config.id)) {
         Crawlers.push(require(crawler.dir + '/crawler.js'));
         crawlers.push(new Crawlers[i]());
