@@ -52,7 +52,9 @@ describe('Testing arso crawler', () => {
     it('getURLs', async () => {
         const crawler = new ArsoCravler();
         urls = await crawler.getURLs('http://www.arso.gov.si/vode/podatki/amp/Ht_30.html');
-        assert.equal(urls[0], 'http://www.arso.gov.si/vode/podatki/amp/H1060_t_30.html');
+        urls.forEach((element) => {
+            assert.ok(/http:\/\/www\.arso\.gov\.si\/vode\/podatki\//.test(element));
+        });
     });
 
     it('crawl', () => {
