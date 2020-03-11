@@ -1,5 +1,5 @@
 // imports
-const CrawlerUtils = require('./crawlerutils');
+const CrawlerUtils = require('./utils/crawlerutils');
 const ActiveCrawlers = require('./config/active_crawlers.json');
 const fs = require('fs');
 

@@ -66,7 +66,7 @@ class CrawlerUtils {
      */
     static getCrawlers() {
         // transverse crawlers folder
-        const dir = __dirname + '/crawlers';
+        const dir = __dirname + '/../crawlers';
         const crawlers = [];
         const list = fs.readdirSync(dir);
         list.forEach((el, i) => {
