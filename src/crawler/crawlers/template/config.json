@@ -1,0 +1,6 @@
+{
+    "id": "template-crawler",
+    "data-lake-type": "ldjson",
+    "log_type": "yearly",
+    "update": "1d"
+}
