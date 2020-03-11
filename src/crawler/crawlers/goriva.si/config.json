@@ -9,7 +9,7 @@
         { "phenomena": "price_eur", "uom": "EUR" }
     ],
     "node_id": {
-        "field_names": [ "placeName"],
+        "field_names": [ "placeName" ],
         "separator": "-"
     }
 }

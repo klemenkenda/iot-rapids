@@ -1,6 +1,6 @@
 // imports
 const CrawlerUtils = require('./crawlerutils');
-const ActiveCrawlers = require('./active_crawlers.json');
+const ActiveCrawlers = require('./config/active_crawlers.json');
 const fs = require('fs');
 
 // dynamically load all the crawlers
