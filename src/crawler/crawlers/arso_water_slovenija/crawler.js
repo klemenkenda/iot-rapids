@@ -28,13 +28,18 @@ class ArsoWaterSloveniaCrawler {
      * Run to crawl.
      */
     async crawl() {
+        console.log('Starting crawl: ' + this.config.id);
         const self = this;
         const links = await this.getURLs();
 
         for (let i = 0; i < links.length - 1; i++) {
             const url = links[i];
+            // put this into a synced loop
+            // for now this is still running, while below this
+            // method has already exited (finishing crawl)
             self.getData(url);
         }
+        console.log('Finishing crawl: ' + this.config.id);
     }
 
     /**

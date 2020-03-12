@@ -27,6 +27,7 @@ class GorivaSiCrawler {
      * is needed, including writing to database.
      */
     async crawl() {
+        console.log('Starting crawl: ' + this.config.id);
         // do the crawling here
         try {
             // go to last parsed page
@@ -92,6 +93,8 @@ class GorivaSiCrawler {
         } catch (e) {
             console.log('Error', e);
         }
+
+        console.log('Finishing crawl: ' + this.config.id);
     }
 
     /**
