@@ -132,6 +132,7 @@ class ArsoWaterSloveniaCrawler {
                 let item = $(element).text();
 
                 if (iterNum == 0) {
+                    // this triggers deprecation warning in tests
                     item = String(moment(item, this.config.timeParse).format());
 
                     if (fromTime >= Date.parse(item)) {
