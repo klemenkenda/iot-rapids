@@ -195,7 +195,7 @@ class CrawlerUtils {
     static saveToDataLake(data, ts, config) {
         const d = new Date(ts);
         let timeId = '';
-        let name = ''
+        let name = '';
 
         if (config.type === 'hourly') {
             timeId = d.getFullYear() + '-d' + this.getDayOfYear(d) + '-h' + d.getHours();
@@ -210,7 +210,7 @@ class CrawlerUtils {
         }
 
         if (config.name != null) {
-            name = config.name + '-'
+            name = config.name + '-';
         }
 
         const filename = __dirname + '/../data/' + config.dir + '/log-' + name + timeId + '.ldjson';

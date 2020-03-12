@@ -3,28 +3,28 @@ const CrawlerUtils = require('./crawlerutils');
 const ActiveCrawlers = require('./active_crawlers.json');
 const fs = require('fs');
 
-//dynamically load all the crawlers
+// dynamically load all the crawlers
 const crawlerConfigs = CrawlerUtils.getCrawlers();
 
 const Crawlers = [];
 const crawlers = [];
 
-let i = 0
+let i = 0;
 crawlerConfigs.forEach((crawler) => {
     if ( crawler.config.length == undefined) {
         if (ActiveCrawlers.includes(crawler.config.id)) {
             Crawlers.push(require(crawler.dir + '/crawler.js'));
-            crawlers.push(new Crawlers[i]());     
-            i++;   
+            crawlers.push(new Crawlers[i]());
+            i++;
         }
     } else {
         crawler.config.forEach((element) => {
             if (ActiveCrawlers.includes(element.id)) {
                 Crawlers.push(require(crawler.dir + '/crawler.js'));
                 crawlers.push(new Crawlers[i](id = element.id));
-                i++
+                i++;
             }
-        })
+        });
     }
 
     if (!fs.existsSync(__dirname + '/../data/' + crawler.config.id)) {

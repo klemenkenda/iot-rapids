@@ -7,7 +7,7 @@ const CrawlerUtils = require('../../crawlerutils');
  */
 class ArsoWaterSloveniaCrawler {
     /**
-     *
+     * @param {String} id
      */
     constructor(id) {
         if (id == CrawlerUtils.loadConfig(__dirname)[0].id) {
@@ -58,19 +58,19 @@ class ArsoWaterSloveniaCrawler {
         let stationName = '';
         let fromTime = 0;
 
-        let body = await CrawlerUtils.getURL(url)
+        const body = await CrawlerUtils.getURL(url);
 
         const $ = cheerio.load(body);
 
-        $('body > table > tbody > tr > td.vsebina > h1').each((_i, element) => { 
+        $('body > table > tbody > tr > td.vsebina > h1').each((_i, element) => {
             // find name of station
             // replace ' ' with '_', ' - ' with '-' and '/' with '-'
-            stationName = $(element).text().replace(/ /g, '_').replace(/_-_/g, '-').replace(/\//g, '-'); 
+            stationName = $(element).text().replace(/ /g, '_').replace(/_-_/g, '-').replace(/\//g, '-');
         });
 
-        let state = CrawlerUtils.loadState(__dirname);
-        
-        fromTime = new Date(new Date().setDate(new Date().getDate() - this.config["start-first-date"])).getTime();
+        const state = CrawlerUtils.loadState(__dirname);
+
+        fromTime = new Date(new Date().setDate(new Date().getDate() - this.config['start-first-date'])).getTime();
         if (state != {}) {
             if (state[stationName] != undefined) {
                 fromTime = state[stationName].lastRecord;
@@ -82,14 +82,14 @@ class ArsoWaterSloveniaCrawler {
 
         if ((data[0]) != undefined) {
             state[stationName] = {'lastRecord': this.checkLastDate(data)};
-            
+
             CrawlerUtils.saveState(__dirname, state);
 
             const line = JSON.stringify(data);
             CrawlerUtils.saveToDataLake(line, fromTime, {
                 dir: this.config.id,
                 type: this.config.log_type,
-                name: stationName
+                name: stationName,
             });
         }
     }
@@ -106,7 +106,7 @@ class ArsoWaterSloveniaCrawler {
 
         const dataNames = this.findDataNames($);
 
-        $('body > table > tbody > tr > td.vsebina > table.podatki > tbody > tr').each((_i, element) => { // get data
+        $('body > table > tbody > tr > td.vsebina > table.podatki > tbody > tr').each((_i, element) => {
             const newData = {};
             let iterNum = 0;
 
@@ -129,14 +129,14 @@ class ArsoWaterSloveniaCrawler {
                 return false;
             }
 
-            let newDataCheck = Object.values(newData)
-            if (this.config.id == 'arso-groundwater',newDataCheck[1] == '-' && newDataCheck[2] == '-') {
+            const newDataCheck = Object.values(newData);
+            if (this.config.id == 'arso-groundwater', newDataCheck[1] == '-' && newDataCheck[2] == '-') {
                 // do not write when no data for ground water
-            } else if (this.config.id == 'arso-surfacewater',newDataCheck[1] == '-' && newDataCheck[2] == '-' && newDataCheck[3] == '-') {
+            } else if (this.config.id == 'arso-surfacewater', newDataCheck[1] == '-' &&
+             newDataCheck[2] == '-' && newDataCheck[3] == '-') {
                 // do not write when no data for surface water
             } else {
                 data.push(newData);
-                
             };
         });
         return data;
