@@ -213,7 +213,7 @@ class CrawlerUtils {
             timeId = d.getFullYear();
         }
 
-        if (config.name != null) {
+        if (config.name !== null) {
             name = config.name + '-';
         }
 

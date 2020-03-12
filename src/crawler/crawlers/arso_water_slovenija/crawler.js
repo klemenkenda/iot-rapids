@@ -7,13 +7,20 @@ const CrawlerUtils = require('../../utils/crawlerutils');
  */
 class ArsoWaterSloveniaCrawler {
     /**
-     * @param {String} id
+     * @param {String} id ID of the crawler as defined in the config.
      */
     constructor(id) {
-        if (id == CrawlerUtils.loadConfig(__dirname)[0].id) {
+        // loading config
+        this.config = CrawlerUtils.loadConfig(__dirname);
+        // loading state
+        this.state = CrawlerUtils.loadState(__dirname);
+
+        if (id === this.config[0].id) {
             this.config = CrawlerUtils.loadConfig(__dirname)[0];
-        } else {
+        } else if (id === this.config[1].id) {
             this.config = CrawlerUtils.loadConfig(__dirname)[1];
+        } else {
+            // throw error, how?
         }
     }
 
@@ -31,7 +38,8 @@ class ArsoWaterSloveniaCrawler {
     }
 
     /**
-     * Construct file with URLs with data
+     * Construct file with URLs with data.
+     *
      * @param {String} url
      * @param {String} baseUrl
      * @return {Array}
@@ -50,7 +58,8 @@ class ArsoWaterSloveniaCrawler {
     }
 
     /**
-     * Get data and save it in csv file
+     * Get data and save it in LDJSON file.
+     *
      * @param {String} url
      */
     async getData(url) {
@@ -68,12 +77,10 @@ class ArsoWaterSloveniaCrawler {
             stationName = $(element).text().replace(/ /g, '_').replace(/_-_/g, '-').replace(/\//g, '-');
         });
 
-        const state = CrawlerUtils.loadState(__dirname);
-
         fromTime = new Date(new Date().setDate(new Date().getDate() - this.config['start-first-date'])).getTime();
-        if (state != {}) {
-            if (state[stationName] != undefined) {
-                fromTime = state[stationName].lastRecord;
+        if (this.state != {}) {
+            if (this.state[stationName] !== undefined) {
+                fromTime = this.state[stationName].lastRecord;
             }
         }
 
@@ -81,9 +88,12 @@ class ArsoWaterSloveniaCrawler {
         data = data.reverse();
 
         if ((data[0]) != undefined) {
-            state[stationName] = {'lastRecord': this.checkLastDate(data)};
+            this.state[stationName] = {
+                'lastRecord': this.checkLastDate(data),
+            };
 
-            CrawlerUtils.saveState(__dirname, state);
+            // write final state
+            CrawlerUtils.saveState(__dirname, this.state);
 
             const line = JSON.stringify(data);
             CrawlerUtils.saveToDataLake(line, fromTime, {

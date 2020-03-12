@@ -5,3 +5,5 @@
 class SQLUtils {
 
 }
+
+module.exports = SQLUtils;
