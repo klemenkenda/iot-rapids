@@ -1,4 +1,4 @@
-const CrawlerUtils = require('../crawlerutils.js');
+const CrawlerUtils = require('../utils/crawlerutils.js');
 const assert = require('assert');
 
 describe('Testing crawlerutils', () => {

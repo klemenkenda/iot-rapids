@@ -1,6 +1,7 @@
 // imports
 const fs = require('fs');
 const https = require('https');
+const request = require('request');
 
 /**
  * A class for different utils for working with crawlers in
@@ -66,7 +67,7 @@ class CrawlerUtils {
      */
     static getCrawlers() {
         // transverse crawlers folder
-        const dir = __dirname + '/crawlers';
+        const dir = __dirname + '/../crawlers';
         const crawlers = [];
         const list = fs.readdirSync(dir);
         list.forEach((el, i) => {
@@ -88,8 +89,13 @@ class CrawlerUtils {
      */
     static async getURL(url) {
         try {
-            const html = await this.getURLPromise(url);
-            return html;
+            if (/^https:/.test(url)) {
+                const html = await this.getURLPromiseHTTPS(url);
+                return html;
+            } else {
+                const html = await this.getURLPromiseHTTP(url);
+                return html;
+            }
         } catch (e) {
             throw (e);
         }
@@ -99,9 +105,9 @@ class CrawlerUtils {
      * Wrapper for getting the URL.
      *
      * @param {string} url URL address we are fetching.
-     * @return {Promis} Promise to the fetched url data.
+     * @return {Promise} Promise to the fetched url data.
      */
-    static getURLPromise(url) {
+    static getURLPromiseHTTPS(url) {
         return new Promise((resolve, reject) => {
             https.get(url, (res) => {
                 if (res.statusCode != 200) {
@@ -121,6 +127,26 @@ class CrawlerUtils {
                         resolve(html.toString('UTF-8'));
                     }
                 });
+            }).on('error', (e) => {
+                reject(e);
+            });
+        });
+    }
+
+    /**
+     * Wrapper for getting the URL.
+     *
+     * @param {string} url URL address we are fetching.
+     * @return {Promise} Promise to the fetched url data.
+     */
+    static getURLPromiseHTTP(url) {
+        return new Promise((resolve, reject) => {
+            request(url, (_err, res, body) => {
+                if (res.statusCode != 200) {
+                    reject(new Error('Wrong HTTP status code ' + res.statusCode));
+                }
+
+                resolve(body.toString('UTF-8'));
             }).on('error', (e) => {
                 reject(e);
             });
@@ -169,6 +195,7 @@ class CrawlerUtils {
     static saveToDataLake(data, ts, config) {
         const d = new Date(ts);
         let timeId = '';
+        let name = '';
 
         if (config.type === 'hourly') {
             timeId = d.getFullYear() + '-d' + this.getDayOfYear(d) + '-h' + d.getHours();
@@ -182,7 +209,16 @@ class CrawlerUtils {
             timeId = d.getFullYear();
         }
 
-        const filename = __dirname + '/../data/' + config.dir + '/log-' + timeId + '.ldjson';
+        if (config.name != null) {
+            name = config.name + '-';
+        }
+
+        const filename = __dirname + '/../../data/' + config.dir + '/log-' + name + timeId + '.ldjson';
+
+        if (!fs.existsSync(__dirname + '/../../data/' + config.dir)) {
+            fs.mkdirSync(__dirname + '/../../data/' + config.dir);
+        }
+
         fs.appendFileSync(filename, data + '\n');
     }
 }

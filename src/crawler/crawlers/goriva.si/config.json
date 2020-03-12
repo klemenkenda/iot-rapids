@@ -4,5 +4,12 @@
     "log_type": "yearly",
     "start": "https://goriva.si/goriva/price/",
     "update": "1d",
-    "max_runs": 3
+    "max_runs": 3,
+    "sensor_types": [
+        { "phenomena": "price_eur", "uom": "EUR" }
+    ],
+    "node_id": {
+        "field_names": [ "placeName" ],
+        "separator": "-"
+    }
 }
