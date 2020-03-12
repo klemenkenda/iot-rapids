@@ -1,7 +1,7 @@
 const cheerio = require('cheerio');
 const moment = require('moment');
 
-const CrawlerUtils = require('../../crawlerutils');
+const CrawlerUtils = require('../../utils/crawlerutils');
 /**
  * Crawler for ARSO data
  */

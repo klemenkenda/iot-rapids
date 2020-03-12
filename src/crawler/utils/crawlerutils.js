@@ -67,7 +67,7 @@ class CrawlerUtils {
      */
     static getCrawlers() {
         // transverse crawlers folder
-        const dir = __dirname + '/crawlers';
+        const dir = __dirname + '/../crawlers';
         const crawlers = [];
         const list = fs.readdirSync(dir);
         list.forEach((el, i) => {
@@ -213,10 +213,10 @@ class CrawlerUtils {
             name = config.name + '-';
         }
 
-        const filename = __dirname + '/../data/' + config.dir + '/log-' + name + timeId + '.ldjson';
+        const filename = __dirname + '/../../data/' + config.dir + '/log-' + name + timeId + '.ldjson';
 
-        if (!fs.existsSync(__dirname + '/../data/' + config.dir)) {
-            fs.mkdirSync(__dirname + '/../data/' + config.dir);
+        if (!fs.existsSync(__dirname + '/../../data/' + config.dir)) {
+            fs.mkdirSync(__dirname + '/../../data/' + config.dir);
         }
 
         fs.appendFileSync(filename, data + '\n');
