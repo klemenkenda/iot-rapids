@@ -89,6 +89,7 @@ class CrawlerUtils {
      */
     static async getURL(url) {
         try {
+            console.log('Retrieving ' + url);
             if (/^https:/.test(url)) {
                 const html = await this.getURLPromiseHTTPS(url);
                 return html;

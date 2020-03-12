@@ -34,9 +34,12 @@ class ArsoWaterSloveniaCrawler {
 
         for (let i = 0; i < links.length - 1; i++) {
             const url = links[i];
-            // put this into a synced loop
+            // Put this into a synced loop
             // for now this is still running, while below this
-            // method has already exited (finishing crawl)
+            // method has already exited (finishing crawl).
+            // This opens ~60 simultaneous requests to the same
+            // website. It should crawl it consecutively; perhaps
+            // even with some delays.
             self.getData(url);
         }
         console.log('Finishing crawl: ' + this.config.id);
