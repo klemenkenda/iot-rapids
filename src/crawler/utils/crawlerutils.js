@@ -142,7 +142,11 @@ class CrawlerUtils {
     static getURLPromiseHTTP(url) {
         return new Promise((resolve, reject) => {
             request(url, (_err, res, body) => {
-                if (res.statusCode != 200) {
+                if (_err !== null) {
+                    reject(new Error('Undefined error retrieving data, result is not defined:' + _err.Error));
+                }
+
+                if (res.statusCode !== 200) {
                     reject(new Error('Wrong HTTP status code ' + res.statusCode));
                 }
 
