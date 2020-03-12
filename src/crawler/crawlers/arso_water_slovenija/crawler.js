@@ -1,34 +1,20 @@
-const request = require('request');
 const cheerio = require('cheerio');
-const fs = require('fs');
 const moment = require('moment');
 
-const CrawlerUtils = require('../../crawlerutils');
-
+const CrawlerUtils = require('../../utils/crawlerutils');
 /**
- *
+ * Crawler for ARSO data
  */
 class ArsoWaterSloveniaCrawler {
     /**
-     *
-     * @param {String} waterType 'sv' for surface watter, gv for ground watter
-     * @param {*} dataFile
+     * @param {String} id
      */
-    constructor(waterType, dataFile) {
-        this.waterType = waterType;
-        this.config = CrawlerUtils.loadConfig(__dirname);
-
-        if (this.waterType == 'sw') {
-            this.url = this.config.surface_water.start;
-            this.baseUrl = this.config.surface_water.base;
-            this.time_parse = 'DD.MM.YYYY hh:mm';
-        } else if (this.waterType == 'gw') {
-            this.url = this.config.ground_water.start;
-            this.baseUrl = this.config.ground_water.base;
-            this.time_parse = 'YYYY-MM-DD hh:mm';
+    constructor(id) {
+        if (id == CrawlerUtils.loadConfig(__dirname)[0].id) {
+            this.config = CrawlerUtils.loadConfig(__dirname)[0];
+        } else {
+            this.config = CrawlerUtils.loadConfig(__dirname)[1];
         }
-        this.urlFile = urlFile;
-        this.dataFile = dataFile;
     }
 
     /**
@@ -37,9 +23,6 @@ class ArsoWaterSloveniaCrawler {
     async crawl() {
         const self = this;
         const links = await this.getURLs();
-
-        const lin = await CrawlerUtils.getURL('http://www.arso.gov.si/vode/podatki/amp/Ht_30.html');
-        console.log(lin);
 
         for (let i = 0; i < links.length - 1; i++) {
             const url = links[i];
@@ -51,97 +34,94 @@ class ArsoWaterSloveniaCrawler {
      * Construct file with URLs with data
      * @param {String} url
      * @param {String} baseUrl
-     * @return {Promise}
+     * @return {Array}
      */
-    getURLs(url = this.url, baseUrl = this.baseUrl) {
-        return new Promise((resolve, _) => {
-            const links = [];
-            request(url, (err, _res, body) => {
-                if (err) {
-                    console.log(err, 'error occured while hitting URL');
-                } else {
-                    const $ = cheerio.load(body);
-                    $('map>area').each(() => {
-                        let link = $(this).attr('href');
-                        link = baseUrl + link;
-                        links.push(link);
-                    });
-                    resolve(links);
-                }
-            });
+    async getURLs(url = this.config.start, baseUrl = this.config.base) {
+        const links = [];
+        const body = await CrawlerUtils.getURL(url);
+
+        const $ = cheerio.load(body);
+        $('map > area').each((_i, element) => {
+            let link = $(element).attr('href');
+            link = baseUrl + link;
+            links.push(link);
         });
+        return links;
     }
 
     /**
      * Get data and save it in csv file
      * @param {String} url
      */
-    getData(url) {
+    async getData(url) {
         let data = [];
         let stationName = '';
         let fromTime = 0;
-        const self = this;
-        request(url, (err, _res, body) => {
-            if (err) {
-                console.log(err, 'error occured while hitting URL');
-            } else {
-                const $ = cheerio.load(body);
 
-                $('body > table > tbody > tr > td.vsebina > h1').each(() => { // find name of station
-                    stationName = $(this).text().replace(/ /g, '_').replace(/_-_/g, '-').replace(/\//g, '-');
-                });
+        const body = await CrawlerUtils.getURL(url);
 
-                fs.readFile(self.dataFile + stationName + '.csv', 'utf-8', (err, dat) => {
-                    if (err) {
-                        data = self.findData($, data, fromTime);
-                        self.saveToFile(data, stationName);
-                    } else {
-                        fromTime = self.checkLastDate(dat);
-                        data = self.findData($, data, fromTime);
-                        self.saveToFile(data, stationName);
-                    }
-                });
-            }
+        const $ = cheerio.load(body);
+
+        $('body > table > tbody > tr > td.vsebina > h1').each((_i, element) => {
+            // find name of station
+            // replace ' ' with '_', ' - ' with '-' and '/' with '-'
+            stationName = $(element).text().replace(/ /g, '_').replace(/_-_/g, '-').replace(/\//g, '-');
         });
-    }
 
-    /**
-     * Save data to file.
-     * @param {Array} data
-     * @param {String} stationName
-     */
-    saveToFile(data, stationName) {
-        const self = this;
-        for (let i = data.length; i > 0; i--) {
-            fs.appendFileSync(self.dataFile + stationName + '.csv', String(data[i-1])+'\n', (err) => {});
+        const state = CrawlerUtils.loadState(__dirname);
+
+        fromTime = new Date(new Date().setDate(new Date().getDate() - this.config['start-first-date'])).getTime();
+        if (state != {}) {
+            if (state[stationName] != undefined) {
+                fromTime = state[stationName].lastRecord;
+            }
+        }
+
+        data = this.findData($, fromTime);
+        data = data.reverse();
+
+        if ((data[0]) != undefined) {
+            state[stationName] = {'lastRecord': this.checkLastDate(data)};
+
+            CrawlerUtils.saveState(__dirname, state);
+
+            const line = JSON.stringify(data);
+            CrawlerUtils.saveToDataLake(line, fromTime, {
+                dir: this.config.id,
+                type: this.config.log_type,
+                name: stationName,
+            });
         }
     }
 
     /**
      * Find data in HTML
      * @param {*} $
-     * @param {Array} data
      * @param {Date} fromTime
      * @return {Array}
      */
-    findData($, data, fromTime) {
+    findData($, fromTime) {
+        const data = [];
         let getOut = false;
-        const self = this;
-        $('body > table > tbody > tr > td.vsebina > table.podatki > tbody > tr').each(() => { // get data
-            const newData = [];
+
+        const dataNames = this.findDataNames($);
+
+        $('body > table > tbody > tr > td.vsebina > table.podatki > tbody > tr').each((_i, element) => {
+            const newData = {};
             let iterNum = 0;
 
-            $(this).find('td').each(() => {
-                let item = $(this).text();
+            $(element).find('td').each((i, element) => {
+                let item = $(element).text();
 
                 if (iterNum == 0) {
-                    item = String(moment(item, self.time_parse).format());
+                    item = String(moment(item, this.config.timeParse).format());
+
                     if (fromTime >= Date.parse(item)) {
                         getOut = true;
                         return false;
                     };
                 };
-                newData.push(item);
+                newData[dataNames[i]] = item;
                 iterNum += 1;
             });
 
@@ -149,9 +129,11 @@ class ArsoWaterSloveniaCrawler {
                 return false;
             }
 
-            if (self.waterType == 'gw' && newData[1] == '-' && newData[2] == '-') {
+            const newDataCheck = Object.values(newData);
+            if (this.config.id == 'arso-groundwater', newDataCheck[1] == '-' && newDataCheck[2] == '-') {
                 // do not write when no data for ground water
-            } else if (self.waterType == 'sw' && newData[1] == '-' && newData[2] == '-' && newData[3] == '-') {
+            } else if (this.config.id == 'arso-surfacewater', newDataCheck[1] == '-' &&
+             newDataCheck[2] == '-' && newDataCheck[3] == '-') {
                 // do not write when no data for surface water
             } else {
                 data.push(newData);
@@ -161,17 +143,28 @@ class ArsoWaterSloveniaCrawler {
     }
 
     /**
+     * Find names of features.
+     * @param {*} $
+     * @return {Array}
+     */
+    findDataNames($) {
+        const dataNames = [];
+        $('body > table > tbody > tr > td.vsebina > table.podatki > thead > tr > th').each((_i, element) => {
+            dataNames.push($(element).text());
+        });
+        return dataNames;
+    }
+
+    /**
      * Check last date.
      * @param {String} dat
      * @return {Date}
      */
     checkLastDate(dat) {
-        const lines = dat.trim().split('\n');
-        const lastLine = lines.slice(-1)[0];
-
-        const splitLine = lastLine.split(',');
-        const fromTime = Date.parse(splitLine.slice(0)[0]);
-
+        let fromTime = Date.parse((dat[0]).Datum);
+        if (fromTime != fromTime) {
+            fromTime = Date.parse((dat[0]).datum);
+        }
         return fromTime;
     }
 }
