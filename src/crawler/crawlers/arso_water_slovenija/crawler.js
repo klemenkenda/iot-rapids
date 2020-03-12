@@ -1,21 +1,20 @@
-const request = require('request');
 const cheerio = require('cheerio');
-const fs = require('fs');
 const moment = require('moment');
 
 const CrawlerUtils = require('../../crawlerutils');
-
 /**
- *
+ * Crawler for ARSO data
  */
 class ArsoWaterSloveniaCrawler {
     /**
      *
-     * @param {String} waterType 'sv' for surface watter, gv for ground watter
-     * @param {*} dataFile
      */
-    constructor() {
-        this.config = CrawlerUtils.loadConfig(__dirname);
+    constructor(id) {
+        if (id == CrawlerUtils.loadConfig(__dirname)[0].id) {
+            this.config = CrawlerUtils.loadConfig(__dirname)[0];
+        } else {
+            this.config = CrawlerUtils.loadConfig(__dirname)[1];
+        }
     }
 
     /**
@@ -35,74 +34,64 @@ class ArsoWaterSloveniaCrawler {
      * Construct file with URLs with data
      * @param {String} url
      * @param {String} baseUrl
-     * @return {Promise}
+     * @return {Array}
      */
     async getURLs(url = this.config.start, baseUrl = this.config.base) {
-        return new Promise(async (resolve, _) => {
-            const links = [];
-            const body = await CrawlerUtils.getURL(url);
+        const links = [];
+        const body = await CrawlerUtils.getURL(url);
 
-            const $ = cheerio.load(body);
-            $('map > area').each((_i, element) => {
-                let link = $(element).attr('href');
-                link = baseUrl + link;
-                links.push(link);
-            });
-            resolve(links);
+        const $ = cheerio.load(body);
+        $('map > area').each((_i, element) => {
+            let link = $(element).attr('href');
+            link = baseUrl + link;
+            links.push(link);
         });
+        return links;
     }
 
     /**
      * Get data and save it in csv file
      * @param {String} url
      */
-    getData(url) {
+    async getData(url) {
         let data = [];
         let stationName = '';
         let fromTime = 0;
 
-        request(url, (err, _res, body) => {
-            if (err) {
-                console.log(err, 'error occured while hitting URL');
-            } else {
-                const $ = cheerio.load(body);
+        let body = await CrawlerUtils.getURL(url)
 
-                $('body > table > tbody > tr > td.vsebina > h1').each((_i, element) => { // find name of station
-                    stationName = $(element).text().replace(/ /g, '_').replace(/_-_/g, '-').replace(/\//g, '-');
-                });
-                const dirState = __dirname + '/' + this.config.state + '/' + stationName;
+        const $ = cheerio.load(body);
 
-                const state = CrawlerUtils.loadState(dirState);
-
-                if (state.lastRecord != undefined) {
-                    fromTime = state.lastRecord;
-                } else {
-                    // 30 days before today
-                    fromTime = new Date(new Date().setDate(new Date().getDate()-30)).getTime();
-                }
-                data = this.findData($, fromTime);
-
-                if ((data[0]) != undefined) {
-                    const newState = {'lastRecord': this.checkLastDate(data)};
-
-                    // create directirys for states
-                    if (!fs.existsSync(dirState + '/../')) {
-                        fs.mkdirSync(dirState + '/../');
-                    }
-                    if (!fs.existsSync(dirState)) {
-                        fs.mkdirSync(dirState);
-                    }
-
-                    CrawlerUtils.saveState(dirState, newState);
-
-                    const line = JSON.stringify(data);
-                    CrawlerUtils.saveToDataLake(line, fromTime, {
-                        dir: this.config.id + '/' + stationName,
-                        type: this.config.log_type,
-                    });
-                }
-            }
+        $('body > table > tbody > tr > td.vsebina > h1').each((_i, element) => { 
+            // find name of station
+            // replace ' ' with '_', ' - ' with '-' and '/' with '-'
+            stationName = $(element).text().replace(/ /g, '_').replace(/_-_/g, '-').replace(/\//g, '-'); 
         });
+
+        let state = CrawlerUtils.loadState(__dirname);
+        
+        fromTime = new Date(new Date().setDate(new Date().getDate() - this.config["start-first-date"])).getTime();
+        if (state != {}) {
+            if (state[stationName] != undefined) {
+                fromTime = state[stationName].lastRecord;
+            }
+        }
+
+        data = this.findData($, fromTime);
+        data = data.reverse();
+
+        if ((data[0]) != undefined) {
+            state[stationName] = {'lastRecord': this.checkLastDate(data)};
+            
+            CrawlerUtils.saveState(__dirname, state);
+
+            const line = JSON.stringify(data);
+            CrawlerUtils.saveToDataLake(line, fromTime, {
+                dir: this.config.id,
+                type: this.config.log_type,
+                name: stationName
+            });
+        }
     }
 
     /**
@@ -140,10 +129,14 @@ class ArsoWaterSloveniaCrawler {
                 return false;
             }
 
-            if (newData[1] == '-' && newData[2] == '-') {
+            let newDataCheck = Object.values(newData)
+            if (this.config.id == 'arso-groundwater',newDataCheck[1] == '-' && newDataCheck[2] == '-') {
                 // do not write when no data for ground water
+            } else if (this.config.id == 'arso-surfacewater',newDataCheck[1] == '-' && newDataCheck[2] == '-' && newDataCheck[3] == '-') {
+                // do not write when no data for surface water
             } else {
                 data.push(newData);
+                
             };
         });
         return data;
@@ -168,7 +161,10 @@ class ArsoWaterSloveniaCrawler {
      * @return {Date}
      */
     checkLastDate(dat) {
-        const fromTime = Date.parse((dat[0]).Datum);
+        let fromTime = Date.parse((dat[0]).Datum);
+        if (fromTime != fromTime) {
+            fromTime = Date.parse((dat[0]).datum);
+        }
         return fromTime;
     }
 }

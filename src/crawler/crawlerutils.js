@@ -90,7 +90,7 @@ class CrawlerUtils {
     static async getURL(url) {
         try {
             if (/^https:/.test(url)) {
-                const html = await this.getURLPromise(url);
+                const html = await this.getURLPromiseHTTPS(url);
                 return html;
             } else {
                 const html = await this.getURLPromiseHTTP(url);
@@ -107,7 +107,7 @@ class CrawlerUtils {
      * @param {string} url URL address we are fetching.
      * @return {Promise} Promise to the fetched url data.
      */
-    static getURLPromise(url) {
+    static getURLPromiseHTTPS(url) {
         return new Promise((resolve, reject) => {
             https.get(url, (res) => {
                 if (res.statusCode != 200) {
@@ -195,6 +195,7 @@ class CrawlerUtils {
     static saveToDataLake(data, ts, config) {
         const d = new Date(ts);
         let timeId = '';
+        let name = ''
 
         if (config.type === 'hourly') {
             timeId = d.getFullYear() + '-d' + this.getDayOfYear(d) + '-h' + d.getHours();
@@ -208,7 +209,11 @@ class CrawlerUtils {
             timeId = d.getFullYear();
         }
 
-        const filename = __dirname + '/../data/' + config.dir + '/log-' + timeId + '.ldjson';
+        if (config.name != null) {
+            name = config.name + '-'
+        }
+
+        const filename = __dirname + '/../data/' + config.dir + '/log-' + name + timeId + '.ldjson';
 
         if (!fs.existsSync(__dirname + '/../data/' + config.dir)) {
             fs.mkdirSync(__dirname + '/../data/' + config.dir);

@@ -1,11 +1,11 @@
-const ArsoCravler = require('../crawlers/arso_water_slovenija/crawler.js');
+const ArsoCrawler = require('../crawlers/arso_water_slovenija/crawler.js');
 const assert = require('assert');
 const request = require('request');
 const cheerio = require('cheerio');
 
 describe('Testing arso crawler', () => {
     it('checkLastDate', () => {
-        const crawler = new ArsoCravler();
+        const crawler = new ArsoCrawler();
         const dataWithDate = [{'Datum': '2020-02-01T16:30:00+01:00', 'Vodostaj [cm]': '54'},
             {'Datum': '2020-02-01T16:00:00+01:00', 'Vodostaj [cm]': '54'}];
         const lastDate = crawler.checkLastDate(dataWithDate);
@@ -14,7 +14,7 @@ describe('Testing arso crawler', () => {
     });
 
     it('findDataNames', () => {
-        const crawler = new ArsoCravler();
+        const crawler = new ArsoCrawler();
         request('http://www.arso.gov.si/vode/podatki/amp/H5479_t_30.html', (err, _res, body) => {
             if (err) {
                 assert(err);
@@ -31,7 +31,7 @@ describe('Testing arso crawler', () => {
     });
 
     it('findData', () => {
-        const crawler = new ArsoCravler();
+        const crawler = new ArsoCrawler();
         request('http://www.arso.gov.si/vode/podatki/amp/H5479_t_30.html', (err, _res, body) => {
             if (err) {
                 assert(!err);
@@ -50,13 +50,10 @@ describe('Testing arso crawler', () => {
     });
 
     it('getURLs', async () => {
-        const crawler = new ArsoCravler();
+        const crawler = new ArsoCrawler();
         urls = await crawler.getURLs('http://www.arso.gov.si/vode/podatki/amp/Ht_30.html');
         urls.forEach((element) => {
             assert.ok(/http:\/\/www\.arso\.gov\.si\/vode\/podatki\//.test(element));
         });
-    });
-
-    it('crawl', () => {
     });
 });
