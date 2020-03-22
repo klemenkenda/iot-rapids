@@ -10,13 +10,22 @@ create table system(
 ) collate=utf8_slovenian_ci;
 
 
+-- create table for places
+create table places(
+    uuid varchar(50),
+    ts timestamp not null default current_timestamp,
+    x float,
+    y float,
+    primary key (uuid),
+)
+
 -- create table for nodes
 create table nodes(
-    id int auto_increment,
+    uuid varchar(50),
     ts timestamp not null default current_timestamp,
-    parent_id int,
-    name  varchar(255),
-    primary key (id)
+    place_id int,
+    name varchar(255),
+    primary key (uuid)
 ) collate=utf8_slovenian_ci;
 
 -- create table for sensor types
@@ -25,17 +34,19 @@ create table sensor_types(
     ts timestamp not null default current_timestamp,
     phenomena varchar(50),
     uom varchar(50),
+    description varchar (255),
     -- todo: min, max?
     primary key (id)
 ) collate=utf8_slovenian_ci;
 
 -- create table for sensors
 create table sensors(
-    id int auto_increment,
+    uuid varchar(50),
     ts timestamp not null default current_timestamp,
     node_id int,
     sensor_type_id int,
-    primary key (id)
+    title varchar (255)
+    primary key (uuid)
 ) collate=utf8_slovenian_ci;
 
 -- create table for measurements
@@ -44,7 +55,7 @@ create table measurements(
     ts timestamp not null default current_timestamp,
     measurement_ts timestamp,
     sensor_id int,
-    value json,
+    value float,
     primary key (id),
     index(sensor_id),
     index(measurement_ts),
