@@ -16,8 +16,8 @@ create table places(
     ts timestamp not null default current_timestamp,
     x float,
     y float,
-    primary key (uuid),
-)
+    primary key (uuid)
+) collate=utf8_slovenian_ci;
 
 -- create table for nodes
 create table nodes(
@@ -45,7 +45,7 @@ create table sensors(
     ts timestamp not null default current_timestamp,
     node_id int,
     sensor_type_id int,
-    title varchar (255)
+    title varchar (255),
     primary key (uuid)
 ) collate=utf8_slovenian_ci;
 
