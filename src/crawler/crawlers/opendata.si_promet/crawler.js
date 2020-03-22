@@ -1,14 +1,13 @@
 // imports
-const CrawlerUtils = require('../../crawlerutils');
+const CrawlerUtils = require('../../utils/crawlerutils.js');
 
 // external imports
-// const cheerio = require('cheerio'); // handling DOM
-// const moment = require('moment'); // handling time
+const moment = require('moment'); // handling time
 
 /**
  * Class for template crawler.
  */
-class TemplateCrawler {
+class OpendataSiPrometCrawler {
     /**
      * Responsible for loading state
      */
@@ -26,10 +25,21 @@ class TemplateCrawler {
      * also historic data if needed). Crawler should provide all the steps
      * denoted in the comments of this method.
      */
-    crawl() {
+    async crawl() {
         console.log('Starting crawl: ' + this.config.id);
-        // do the crawling here
 
+        // do the crawling here
+        try {
+            if (this.state.last_record === undefined) {
+                this.state.last_time = -1;
+            }
+
+            const data = await CrawlerUtils.getURL(this.config.url);
+            const json = JSON.parse(data);
+            console.log(json);
+        } catch (e) {
+            console.log(e);
+        }
         // update datalake repository with the crawled data
 
         // update the state with the last crawled timestamp
@@ -38,8 +48,6 @@ class TemplateCrawler {
 
         // write final state
         CrawlerUtils.saveState(__dirname, state);
-
-        console.log('Finishing crawl: ' + this.config.id);
     }
 
     /**
@@ -50,4 +58,4 @@ class TemplateCrawler {
     }
 }
 
-module.exports = TemplateCrawler;
+module.exports = OpendataSiPrometCrawler;

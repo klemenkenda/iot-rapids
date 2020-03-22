@@ -1,0 +1,7 @@
+{
+    "id": "opendata.si_promet",
+    "data-lake-type": "ldjson",
+    "log_type": "daily",
+    "update": "5m",
+    "url": "https://opendata.si/promet/counters/"
+}
