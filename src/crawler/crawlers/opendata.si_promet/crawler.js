@@ -31,13 +31,50 @@ class OpendataSiPrometCrawler {
         // do the crawling here
         try {
             if (this.state.last_record === undefined) {
-                this.state.last_time = -1;
+                this.state.last_ts = -1;
             }
 
             const data = await CrawlerUtils.getURL(this.config.url);
-            console.log("test");
             const json = JSON.parse(data);
-            console.log("test", json);
+
+            const ts = json.updated;
+
+            // is this a new record?
+            if (ts > this.state.last_ts) {
+                // all the items
+                const items = json.Contents[0].Data.Items;
+
+                items.forEach((el, i) => {
+                    // extract node data
+                    if (i === 0) {
+                        const node_p = {
+                            x: el.x_wgs,
+                            y: el.y_wgs,
+                            title: el.stevci_cestaOpis + ", " + el.stevci_lokacijaOpis
+                        }
+
+                        el.Data.forEach((counter, j) => {
+                            // extract last metadata
+                            let node_c = node_p;
+                            node_c.uuid = counter.Id;
+                            node_c.title +=
+                                "," + counter.properties.stevci_smerOpis +
+                                ", " + counter.properties.stevci_pasOpis;
+
+                            // extract data
+                            const p = counter.properties;
+                            const gap = parseFloat(p.stevci_gap);
+                            const speed = parseFloat(p.stevci_hit);
+                            const num = parseInt(p.stevci_stev);
+                            const stat = parseInt(p.stevci_stat);
+
+                            console.log(gap, speed, num, stat);
+                        });
+                    }
+                })
+
+            }
+
         } catch (e) {
             console.log("ERROR:", e);
         }
@@ -46,6 +83,7 @@ class OpendataSiPrometCrawler {
         // update the state with the last crawled timestamp
 
         // update state
+        let state = this.state;
 
         // write final state
         CrawlerUtils.saveState(__dirname, state);

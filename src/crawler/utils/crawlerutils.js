@@ -118,7 +118,7 @@ class CrawlerUtils {
                 // repeat until desired length is received
                 // TODO: handle timeouts!
                 const docLength = res.headers['content-length'];
-                console.log(res.headers);
+
                 let length = 0;
                 let html = '';
                 res.on('data', (d) => {
