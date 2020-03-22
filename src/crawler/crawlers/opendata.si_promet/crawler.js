@@ -1,5 +1,6 @@
 // imports
 const CrawlerUtils = require('../../utils/crawlerutils.js');
+const SQLUtils = require('../../utils/sqlutils.js');
 
 // external imports
 const moment = require('moment'); // handling time
@@ -16,6 +17,9 @@ class OpendataSiPrometCrawler {
         this.config = CrawlerUtils.loadConfig(__dirname);
         // loading state
         this.state = CrawlerUtils.loadState(__dirname);
+        // connect to DB
+        this.SQLUtils = new SQLUtils();
+        this.SQLUtils.getPlaces();
     }
 
     /**
