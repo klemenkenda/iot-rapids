@@ -33,6 +33,6 @@ crawlerConfigs.forEach((crawler) => {
     }
 });
 
-crawlers.forEach((crawler) => {
-    crawler.crawl();
+crawlers.forEach(async (crawler) => {
+    await crawler.crawl();
 });

@@ -35,10 +35,11 @@ class OpendataSiPrometCrawler {
             }
 
             const data = await CrawlerUtils.getURL(this.config.url);
+            console.log("test");
             const json = JSON.parse(data);
-            console.log(json);
+            console.log("test", json);
         } catch (e) {
-            console.log(e);
+            console.log("ERROR:", e);
         }
         // update datalake repository with the crawled data
 
