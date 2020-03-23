@@ -40,4 +40,4 @@ function runLoop() {
     });
 };
 
-let timeout = setInterval(runLoop, 5 * 1000);
+let timeout = setInterval(runLoop, 5 * 60 * 1000);
