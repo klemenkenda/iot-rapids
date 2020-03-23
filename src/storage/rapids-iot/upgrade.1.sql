@@ -15,6 +15,7 @@ create table places(
     uuid varchar(50),
     ts timestamp not null default current_timestamp,
     title varchar(255),
+    crawler varchar(50),
     x float,
     y float,
     primary key (uuid)

@@ -63,7 +63,7 @@ class OpendataSiPrometCrawler {
                 for (const el of items) {
                     i++;
                     // extract node data
-                    if (i < 2) { //
+                    // if (i < 2) {
                     const node_p = {
                         x: el.x_wgs,
                         y: el.y_wgs,
@@ -74,7 +74,7 @@ class OpendataSiPrometCrawler {
                     // does this place already exist?
                     const place = places.filter(x => x.uuid === node_p.uuid);
                     if (place.length === 0) {
-                        await this.SQLUtils.insertPlace(node_p.uuid, node_p.title, node_p.x, node_p.y);
+                        await this.SQLUtils.insertPlace("opendata.si_promet", node_p.uuid, node_p.title, node_p.x, node_p.y);
                     };
 
                     // create all the nodes in this place
@@ -125,21 +125,27 @@ class OpendataSiPrometCrawler {
                             }
                         };
                     };
-                    } //
+                    // if (i > N) // }
                 }
                 console.log("Inserting measurements.");
                 await this.SQLUtils.processSQL(insertSQL);
-                console.log("Finishing inserting measurements.")
+                console.log("Finishing inserting measurements.");
             } else {
                 console.log("No new data.")
             }
 
             // update datalake repository with the crawled data
+            const line = JSON.stringify(json);
 
-            // update the state with the last crawled timestamp
-            this.state.last_ts = ts;
+            CrawlerUtils.saveToDataLake(line, ts * 1000, {
+                dir: this.config.id,
+                name: "all",
+                type: this.config.log_type,
+            });
 
             // update state
+            // update the state with the last crawled timestamp
+            this.state.last_ts = ts;
 
             // write final state
             CrawlerUtils.saveState(__dirname, this.state);

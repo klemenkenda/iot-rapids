@@ -53,7 +53,7 @@ class SQLUtils {
         }
     }
 
-    async insertPlace(uuid, title, x, y) {
+    async insertPlace(crawler, uuid, title, x, y) {
         let conn;
 
         try {
@@ -64,8 +64,8 @@ class SQLUtils {
 
             // sql
             const sql = `
-                insert into places (uuid, title, x, y)
-                values('${uuid}', '${title}', ${x}, ${y})
+                insert into places (crawler, uuid, title, x, y)
+                values('${crawler}', '${uuid}', '${title}', ${x}, ${y})
             `;
 
             conn.query(sql);

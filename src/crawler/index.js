@@ -33,6 +33,11 @@ crawlerConfigs.forEach((crawler) => {
     }
 });
 
-crawlers.forEach(async (crawler) => {
-    await crawler.crawl();
-});
+// hardcoded loop
+function runLoop() {
+    crawlers.forEach(async (crawler) => {
+        await crawler.crawl();
+    });
+};
+
+let timeout = setInterval(runLoop, 5 * 1000);
