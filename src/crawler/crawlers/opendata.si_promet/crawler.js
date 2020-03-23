@@ -58,8 +58,10 @@ class OpendataSiPrometCrawler {
             if (ts > this.state.last_ts) {
                 // all the items
                 const items = json.Contents[0].Data.Items;
-
-                items.forEach(async (el, i) => {
+                // counter
+                let i = -1;
+                for (const el of items) {
+                    i++;
                     // extract node data
                     if (i < 2) {
                         const node_p = {
@@ -77,7 +79,8 @@ class OpendataSiPrometCrawler {
                             console.log("Place exists");
                         }
 
-                        el.Data.forEach(async (counter, j) => {
+                        // create all the nodes in this place
+                        for (const counter of el.Data) {
                             // extract last metadata
                             let node_c = node_p;
                             node_c.uuid = counter.Id;
@@ -90,12 +93,19 @@ class OpendataSiPrometCrawler {
                             if (node.length === 0) {
                                 await this.SQLUtils.insertNode(node_c.uuid, node_p.uuid, node_c.title);
                                 // insert also corresponding sensors
-                                this.sensor_types.forEach(async (type) => {
+                                for (const type of this.sensor_types) {
+                                    const uuid = node_c.uuid + "-" + type;
+                                    const title = uuid;
+                                    console.log("Inserting: ", uuid);
+                                    await this.SQLUtils.insertSensor(uuid, node_c.uuid, type, title);
+                                }
+                                /*
+                                await Promise.all(this.sensor_types.map(async (type) => {
                                     const uuid = node_c.uuid + "-" + type;
                                     const title = uuid;
                                     await this.SQLUtils.insertSensor(uuid, node_c.uuid, type, title);
-                                    console.log("inserting" + uuid);
-                                });
+                                }));
+                                */
                                 console.log("Refreshing sensors");
                                 sensors = await this.SQLUtils.getSensors();
                             } else {
@@ -104,6 +114,7 @@ class OpendataSiPrometCrawler {
 
                             // extract data
                             const p = counter.properties;
+                            console.log(counter);
                             const values = {
                                 gap: parseFloat(p.stevci_gap),
                                 speed: parseFloat(p.stevci_hit),
@@ -112,12 +123,22 @@ class OpendataSiPrometCrawler {
                             }
 
                             // insert measurements
-                            for
+                            await Promise.all(this.sensor_types.map(async (type) => {
+                                // find sensor id
+                                const sensor_uuid = node_c.uuid + "-" + type;
+                                const sensor = sensors.filter(x => x.uuid === sensor_uuid);
+                                if (sensor.length > 0) {
+                                    const sensor_id = sensor[0].id;
+                                    console.log("Sensor id: ", sensor_id);
+                                } else {
+                                    console.log("Sensor not found: ", sensor_uuid);
+                                }
+                            }));
 
                             console.log(values);
-                        });
+                        };
                     }
-                })
+                }
 
             }
 

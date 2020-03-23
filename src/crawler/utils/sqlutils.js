@@ -213,7 +213,7 @@ class SQLUtils {
 
             // sql
             const sql = `
-                insert into measuremnts (sensor_id, value)
+                insert into measurements (sensor_id, value)
                 values(${sensor_id}, ${value})
             `;
 
