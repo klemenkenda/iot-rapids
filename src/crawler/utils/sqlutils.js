@@ -202,7 +202,7 @@ class SQLUtils {
     // SENSORS
     // -------------------------------------------------------
 
-    async insertMeasurement(sensor_id, value) {
+    async insertMeasurement(sensor_id, ts, value) {
         let conn;
 
         try {
@@ -213,8 +213,8 @@ class SQLUtils {
 
             // sql
             const sql = `
-                insert into measurements (sensor_id, value)
-                values(${sensor_id}, ${value})
+                insert into measurements (sensor_id, ts, value)
+                values(${sensor_id}, FROM_UNIXTIME(${ts}), ${value})
             `;
 
             conn.query(sql);
@@ -229,6 +229,34 @@ class SQLUtils {
         }
     }
 
+    insertMeasurementSQL(sensor_id, ts, value) {
+        return `insert into measurements (sensor_id, measurement_ts, value) values(${sensor_id}, FROM_UNIXTIME(${ts}), ${value}); `;
+    }
+
+
+    // -------------------------------------------------------
+    // GENERAL
+    // -------------------------------------------------------
+
+    async processSQL(sql) {
+        let conn;
+
+        try {
+            // create connection
+            conn = await this.pool.getConnection();
+            // select appropriate database
+            conn.query(`use rapidsiot;`);
+            conn.query(sql);
+
+            return true;
+        } catch (e) {
+            // display error and assume the link is down - repeat connecting to DB
+            console.log("Error", e);
+            return false;
+        } finally {
+            if (conn) conn.release();
+        }
+    }
 
 }
 
