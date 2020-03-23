@@ -139,6 +139,64 @@ class SQLUtils {
         }
     }
 
+
+    // -------------------------------------------------------
+    // SENSORS
+    // -------------------------------------------------------
+
+    async getSensors() {
+        let conn;
+
+        try {
+            // create connection
+            conn = await this.pool.getConnection();
+            // select appropriate database
+            conn.query(`use rapidsiot;`);
+
+            // retrieve places
+            const sql = `select * from sensors`;
+            let data = await conn.query(sql);
+
+            // delete unnecessary data
+            delete data.meta;
+            return data;
+        } catch(e) {
+            // display error and assume the link is down - repeat connecting to DB
+            console.log("Error", e);
+            this.connectToMariaDB();
+        } finally {
+            if (conn) conn.release();
+        }
+    }
+
+    async insertSensor(uuid, node_uuid, sensor_type_uuid, title) {
+        let conn;
+
+        try {
+            // create connection
+            conn = await this.pool.getConnection();
+            // select appropriate database
+            conn.query(`use rapidsiot;`);
+
+            // sql
+            const sql = `
+                insert into sensors (uuid, node_uuid, sensor_type_uuid, title)
+                values('${uuid}', '${node_uuid}', '${sensor_type_uuid}', '${title}')
+            `;
+
+            conn.query(sql);
+            console.log("Inserted sensor: " + uuid);
+
+            return true;
+        } catch (e) {
+            // display error and assume the link is down - repeat connecting to DB
+            console.log("Error", e);
+            return false;
+        } finally {
+            if (conn) conn.release();
+        }
+    }
+
 }
 
 module.exports = SQLUtils;

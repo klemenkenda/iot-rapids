@@ -17,6 +17,11 @@ class OpendataSiPrometCrawler {
         this.config = CrawlerUtils.loadConfig(__dirname);
         // loading state
         this.state = CrawlerUtils.loadState(__dirname);
+        // sensor types
+        this.sensor_types = [
+            "gap", "speed", "number", "class"
+        ];
+
         // connect to DB
         this.SQLUtils = new SQLUtils();
         this.SQLUtils.getPlaces();
@@ -35,7 +40,8 @@ class OpendataSiPrometCrawler {
         // retrieve data from SQL
         const places = await this.SQLUtils.getPlaces();
         const nodes = await this.SQLUtils.getNodes();
-        console.log(places);
+        let sensors = await this.SQLUtils.getSensors();
+        console.log(sensors);
 
         // do the crawling here
         try {
@@ -55,7 +61,7 @@ class OpendataSiPrometCrawler {
 
                 items.forEach(async (el, i) => {
                     // extract node data
-                    if (i < 15) {
+                    if (i < 2) {
                         const node_p = {
                             x: el.x_wgs,
                             y: el.y_wgs,
@@ -83,18 +89,32 @@ class OpendataSiPrometCrawler {
                             const node = nodes.filter(x => x.uuid === node_c.uuid);
                             if (node.length === 0) {
                                 await this.SQLUtils.insertNode(node_c.uuid, node_p.uuid, node_c.title);
+                                // insert also corresponding sensors
+                                this.sensor_types.forEach(async (type) => {
+                                    const uuid = node_c.uuid + "-" + type;
+                                    const title = uuid;
+                                    await this.SQLUtils.insertSensor(uuid, node_c.uuid, type, title);
+                                    console.log("inserting" + uuid);
+                                });
+                                console.log("Refreshing sensors");
+                                sensors = await this.SQLUtils.getSensors();
                             } else {
                                 console.log("Node exists");
                             }
 
                             // extract data
                             const p = counter.properties;
-                            const gap = parseFloat(p.stevci_gap);
-                            const speed = parseFloat(p.stevci_hit);
-                            const num = parseInt(p.stevci_stev);
-                            const stat = parseInt(p.stevci_stat);
+                            const values = {
+                                gap: parseFloat(p.stevci_gap),
+                                speed: parseFloat(p.stevci_hit),
+                                num: parseInt(p.stevci_stev),
+                                stat: parseInt(p.stevci_stat)
+                            }
 
-                            console.log(gap, speed, num, stat);
+                            // insert measurements
+                            for
+
+                            console.log(values);
                         });
                     }
                 })
