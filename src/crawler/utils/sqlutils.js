@@ -48,6 +48,34 @@ class SQLUtils {
         }
     }
 
+    async insertPlace(uuid, title, x, y) {
+        let conn;
+
+        try {
+            // create connection
+            conn = await this.pool.getConnection();
+            // select appropriate database
+            conn.query(`use rapidsiot;`);
+
+            // sql
+            const sql = `
+                insert into places (uuid, title, x, y)
+                values('${uuid}', '${title}', ${x}, ${y})
+            `;
+
+            conn.query(sql);
+            console.log("Inserted place: " + uuid);
+
+            return true;
+        } catch (e) {
+            // display error and assume the link is down - repeat connecting to DB
+            console.log("Error", e);
+            return false;
+        } finally {
+            if (conn) conn.release();
+        }
+    }
+
 }
 
 module.exports = SQLUtils;

@@ -32,6 +32,10 @@ class OpendataSiPrometCrawler {
     async crawl() {
         console.log('Starting crawl: ' + this.config.id);
 
+        // retrieve data from SQL
+        const places = await this.SQLUtils.getPlaces();
+        console.log(places);
+
         // do the crawling here
         try {
             if (this.state.last_record === undefined) {
@@ -48,13 +52,22 @@ class OpendataSiPrometCrawler {
                 // all the items
                 const items = json.Contents[0].Data.Items;
 
-                items.forEach((el, i) => {
+                items.forEach(async (el, i) => {
                     // extract node data
-                    if (i === 0) {
+                    if (i < 15) {
                         const node_p = {
                             x: el.x_wgs,
                             y: el.y_wgs,
-                            title: el.stevci_cestaOpis + ", " + el.stevci_lokacijaOpis
+                            title: el.stevci_cestaOpis + ", " + el.stevci_lokacijaOpis,
+                            uuid: (el.stevci_cestaOpis + "-" + el.stevci_lokacijaOpis).replace(/\s+/g, '')
+                        }
+
+                        // does this place already exist?
+                        const place = places.filter(x => x.uuid === node_p.uuid);
+                        if (place.length === 0) {
+                            await this.SQLUtils.insertPlace(node_p.uuid, node_p.title, node_p.x, node_p.y);
+                        } else {
+                            console.log("Place exists");
                         }
 
                         el.Data.forEach((counter, j) => {
