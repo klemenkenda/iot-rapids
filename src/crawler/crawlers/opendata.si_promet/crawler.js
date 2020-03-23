@@ -34,6 +34,7 @@ class OpendataSiPrometCrawler {
 
         // retrieve data from SQL
         const places = await this.SQLUtils.getPlaces();
+        const nodes = await this.SQLUtils.getNodes();
         console.log(places);
 
         // do the crawling here
@@ -70,13 +71,21 @@ class OpendataSiPrometCrawler {
                             console.log("Place exists");
                         }
 
-                        el.Data.forEach((counter, j) => {
+                        el.Data.forEach(async (counter, j) => {
                             // extract last metadata
                             let node_c = node_p;
                             node_c.uuid = counter.Id;
                             node_c.title +=
                                 "," + counter.properties.stevci_smerOpis +
                                 ", " + counter.properties.stevci_pasOpis;
+
+                            // insert node if needed
+                            const node = nodes.filter(x => x.uuid === node_c.uuid);
+                            if (node.length === 0) {
+                                await this.SQLUtils.insertNode(node_c.uuid, node_p.uuid, node_c.title);
+                            } else {
+                                console.log("Node exists");
+                            }
 
                             // extract data
                             const p = counter.properties;

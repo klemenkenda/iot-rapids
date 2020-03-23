@@ -23,6 +23,11 @@ class SQLUtils {
         });
     }
 
+
+    // -------------------------------------------------------
+    // PLACES
+    // -------------------------------------------------------
+
     async getPlaces() {
         let conn;
 
@@ -65,6 +70,64 @@ class SQLUtils {
 
             conn.query(sql);
             console.log("Inserted place: " + uuid);
+
+            return true;
+        } catch (e) {
+            // display error and assume the link is down - repeat connecting to DB
+            console.log("Error", e);
+            return false;
+        } finally {
+            if (conn) conn.release();
+        }
+    }
+
+
+    // -------------------------------------------------------
+    // NODES
+    // -------------------------------------------------------
+
+    async getNodes() {
+        let conn;
+
+        try {
+            // create connection
+            conn = await this.pool.getConnection();
+            // select appropriate database
+            conn.query(`use rapidsiot;`);
+
+            // retrieve places
+            const sql = `select * from nodes`;
+            let data = await conn.query(sql);
+
+            // delete unnecessary data
+            delete data.meta;
+            return data;
+        } catch(e) {
+            // display error and assume the link is down - repeat connecting to DB
+            console.log("Error", e);
+            this.connectToMariaDB();
+        } finally {
+            if (conn) conn.release();
+        }
+    }
+
+    async insertNode(uuid, place_uuid, title) {
+        let conn;
+
+        try {
+            // create connection
+            conn = await this.pool.getConnection();
+            // select appropriate database
+            conn.query(`use rapidsiot;`);
+
+            // sql
+            const sql = `
+                insert into nodes (uuid, place_uuid, title)
+                values('${uuid}', '${place_uuid}', '${title}')
+            `;
+
+            conn.query(sql);
+            console.log("Inserted node: " + uuid);
 
             return true;
         } catch (e) {
