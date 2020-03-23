@@ -197,6 +197,39 @@ class SQLUtils {
         }
     }
 
+
+    // -------------------------------------------------------
+    // SENSORS
+    // -------------------------------------------------------
+
+    async insertMeasurement(sensor_id, value) {
+        let conn;
+
+        try {
+            // create connection
+            conn = await this.pool.getConnection();
+            // select appropriate database
+            conn.query(`use rapidsiot;`);
+
+            // sql
+            const sql = `
+                insert into measuremnts (sensor_id, value)
+                values(${sensor_id}, ${value})
+            `;
+
+            conn.query(sql);
+
+            return true;
+        } catch (e) {
+            // display error and assume the link is down - repeat connecting to DB
+            console.log("Error", e);
+            return false;
+        } finally {
+            if (conn) conn.release();
+        }
+    }
+
+
 }
 
 module.exports = SQLUtils;
