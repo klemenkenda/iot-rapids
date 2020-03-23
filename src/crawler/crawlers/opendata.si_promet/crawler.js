@@ -80,7 +80,7 @@ class OpendataSiPrometCrawler {
                     // create all the nodes in this place
                     for (const counter of el.Data) {
                         // extract last metadata
-                        let node_c = node_p;
+                        let node_c = JSON.parse(JSON.stringify(node_p));
                         node_c.uuid = counter.Id;
                         node_c.title +=
                             "," + counter.properties.stevci_smerOpis +
