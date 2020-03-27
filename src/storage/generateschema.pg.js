@@ -1,5 +1,5 @@
 let config = require('../common/config.json')['storage'];
-let pg = require('mariadb');
+let { Pool, Client } = require('pg');
 let fs = require('fs');
 
 class GenerateSchema {
@@ -7,10 +7,10 @@ class GenerateSchema {
         this.branches = branches;
     }
 
-    async file_sql(conn, name, item) {
+    async file_sql(pool, name, item) {
         let sql = fs.readFileSync('./' + name + '/' + item).toString('utf8');
         try {
-            await conn.query(sql);
+            await pool.query(sql);
         } catch (err) {
             console.log(err);
             throw err;
@@ -22,30 +22,24 @@ class GenerateSchema {
 
     async generate(branch) {
         let lConfig = config[branch.name];
-        console.log('Generating branch ' + branch.name + ' MariaDB@' + lConfig.host);
+        console.log('Generating branch ' + branch.name + ' Postgres@' + lConfig.host);
         // connect to the database
-        let pool = mariadb.createPool({
+        let pool = new Pool({
             host: lConfig.host,
             user: lConfig.user,
             password: lConfig.password,
+            database: lConfig.db,
             multipleStatements: true
         });
 
         let conn;
 
         try {
-            conn = await pool.getConnection();
-
-            console.log(branch.items.length);
-
             for (const item of branch.items) {
-                await this.file_sql(conn, branch.name, item);
+                await this.file_sql(pool, branch.name, item);
             }
-
-            conn.end();
         } finally {
             console.log('Ending connection.');
-            if (conn) conn.end();
             if (pool) pool.end();
         }
     }

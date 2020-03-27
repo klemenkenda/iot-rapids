@@ -1,6 +1,6 @@
 {
     "storage": {
-        "rapids-iot": {
+        "rapids-iot-pg": {
             "host": "localhost",
             "root_password": "example",
             "user": "user",
