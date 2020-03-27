@@ -3,9 +3,9 @@
         "rapids-iot": {
             "host": "localhost",
             "root_password": "example",
-            "user": "rapidsiot",
-            "password": "Th0uSha11S4v3",
-            "db": "rapidsiot"
+            "user": "covidgis",
+            "password": "seiKie4T",
+            "db": "covidgis"
         }
     }
 }
