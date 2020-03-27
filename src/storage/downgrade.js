@@ -1,6 +1,6 @@
-let GenerateSchema = require('./generateschema.js');
+let GenerateSchema = require('./generateschema.pg.js');
 
 let g = new GenerateSchema([
-    { name: 'rapids-iot', items: [ 'downgrade.1.sql'] }
+    { name: 'rapids-iot-pg', items: [ 'downgrade.1.sql'] }
 ]);
 g.execute();
