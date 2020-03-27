@@ -1,0 +1,11 @@
+{
+    "storage": {
+        "rapids-iot": {
+            "host": "localhost",
+            "root_password": "example",
+            "user": "user",
+            "password": "pass",
+            "db": "db"
+        }
+    }
+}

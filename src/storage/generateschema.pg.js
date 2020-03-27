@@ -1,5 +1,5 @@
 let config = require('../common/config.json')['storage'];
-let mariadb = require('mariadb');
+let pg = require('mariadb');
 let fs = require('fs');
 
 class GenerateSchema {
@@ -26,8 +26,8 @@ class GenerateSchema {
         // connect to the database
         let pool = mariadb.createPool({
             host: lConfig.host,
-            user: 'root',
-            password: lConfig.root_password,
+            user: lConfig.user,
+            password: lConfig.password,
             multipleStatements: true
         });
 
