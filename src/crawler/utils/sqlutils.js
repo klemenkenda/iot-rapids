@@ -1,6 +1,6 @@
 // includes
 const mariadb = require('mariadb');
-const { Pool } = reqire('pg');
+const { Pool } = require('pg');
 
 /**
  * A class for different utils for working with crawlers in
@@ -43,11 +43,10 @@ class SQLUtils {
         try {
             // retrieve places
             const sql = `select * from rapids_iot.places`;
-            let data = await pool.query(sql);
+            let data = await this.pool.query(sql);
 
             // delete unnecessary data
-            delete data.meta;
-            return data;
+            return data.rows;
         } catch(e) {
             // display error and assume the link is down - repeat connecting to DB
             console.log("Error", e);
@@ -85,8 +84,7 @@ class SQLUtils {
             let data = await this.pool.query(sql);
 
             // delete unnecessary data
-            delete data.meta;
-            return data;
+            return data.rows;
         } catch(e) {
             // display error and assume the link is down - repeat connecting to DB
             console.log("Error", e);
@@ -123,9 +121,7 @@ class SQLUtils {
             const sql = `select * from rapids_iot.sensors`;
             let data = await this.pool.query(sql);
 
-            // delete unnecessary data
-            delete data.meta;
-            return data;
+            return data.rows;
         } catch(e) {
             // display error and assume the link is down - repeat connecting to DB
             console.log("Error", e);
@@ -173,7 +169,7 @@ class SQLUtils {
     }
 
     insertMeasurementSQL(sensor_id, ts, value) {
-        return `insert into rapids_iot.measurements (sensor_id, measurement_ts, value) values(${sensor_id}, FROM_UNIXTIME(${ts}), ${value}); `;
+        return `insert into rapids_iot.measurements (sensor_id, measurement_ts, value) values(${sensor_id}, to_timestamp(${ts}), ${value}); `;
     }
 
 

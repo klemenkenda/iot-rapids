@@ -58,5 +58,6 @@ create table rapids_iot.measurements(
     sensor_id int,
     value float
 );
-create unique index measurements_sensor_id_idx on rapids_iot.measurements (sensor_id);
-create unique index measurements_ts_idx on rapids_iot.measurements (measurement_ts);
+create unique index measurements_sensor_id_ts_idx on rapids_iot.measurements (sensor_id, measurement_ts);
+create index measurements_sensor_id_idx on rapids_iot.measurements (sensor_id);
+create index measurements_ts_idx on rapids_iot.measurements (measurement_ts);
