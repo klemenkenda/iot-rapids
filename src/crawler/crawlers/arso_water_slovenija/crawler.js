@@ -21,6 +21,7 @@ class ArsoWaterSloveniaCrawler {
             this.config = CrawlerUtils.loadConfig(__dirname)[1];
         } else {
             // throw error, how?
+            console.log("Wrong crawler id!")
         }
     }
 

@@ -12,7 +12,7 @@ j = 0;
 
 let i = 0;
 crawlerConfigs.forEach((crawler) => {
-    if ( crawler.config.length == undefined) {
+    if (crawler.config.length == undefined) {
         if (ActiveCrawlers.includes(crawler.config.id)) {
             Crawlers.push(require(crawler.dir + '/crawler.js'));
             crawlers.push(new Crawlers[i]());
