@@ -1,10 +1,12 @@
 // imports
 const CrawlerUtils = require('../../utils/crawlerutils');
+const SQLUtils = require('../../utils/sqlutils');
 
 // external imports
 const cheerio = require('cheerio'); // handling DOM
 const moment = require('moment'); // handling time
-const ArsoWaterSloveniaCrawler = require('../arso_water_slovenija/crawler');
+const { createPool } = require('mariadb');
+
 
 /**
  * Class for template crawler.
@@ -18,6 +20,8 @@ class TemplateCrawler {
         this.config = CrawlerUtils.loadConfig(__dirname);
         // loading state
         this.state = CrawlerUtils.loadState(__dirname);
+
+        this.SQLUtils = new SQLUtils();
     }
 
     /**
@@ -31,12 +35,87 @@ class TemplateCrawler {
         console.log('Starting crawl: ' + this.config.id);
         // do the crawling here
         let weatherData = await this.getData()
-        
-
 
         // update datalake repository with the crawled data
         // update the state with the last crawled timestamp
         await this.dataLake(weatherData);
+
+
+        //   PUSHING TO DB
+
+        //EXISTING PLACEHOLDERS
+        let nodes = await this.SQLUtils.getNodes();
+        let sensors = await this.SQLUtils.getSensors();
+        //console.log(sensors)
+        //NODE 
+        for (let station of weatherData) {
+            const node = nodes.filter(x => x.uuid === station.Postaja);
+            let el = 0;
+            if (node.length === 0) {
+                await this.SQLUtils.insertNode(station.Postaja, station.Postaja, `${station.Postaja} - samodejna postaja`)
+            };
+
+            const sensor = sensors.filter(x => x.node_uuid === station.Postaja);
+            
+            if (sensor.length === 0) {
+                let i = 0;
+                for (let variable of Object.entries(station)) {
+                    
+                    const sen = sensors.filter(x => x.uuid === variable[0]);
+                    
+                    if (sen.length === 0) {
+                        if (!variable[0].includes("Datum") && !variable[0].includes("Postaja")) {
+                        
+                            await this.SQLUtils.insertSensor(`${station.Postaja} - ${i}`, station.Postaja, variable[0], `${station.Postaja} - ${variable[0]}`)
+                            i++;
+                        }
+                    }
+                    
+                    
+                }
+
+            }
+
+            let val;
+            let date;
+            let sensorUUID;
+
+            
+            for (let variable of Object.entries(station)) {
+                
+                
+                if (variable[0].includes("Datum")) {
+                    date = variable[1];
+                    
+                } else if (!variable[0].includes("Datum") && !variable[0].includes("Postaja")) {
+                    sensorUUID = `${station.Postaja} - ${el}`;
+                    val = variable[1];
+                    el++;
+                    
+                    for (let m of sensors) {
+                        if (sensorUUID === m.uuid) {
+                            
+                            
+                            
+                            let SQL = this.SQLUtils.insertMeasurementSQL(m.id, moment(date).unix(), val)
+                            this.SQLUtils.processSQL(SQL)
+                            
+                            
+                                
+                            
+                        }
+                    }
+                
+                    
+                    
+                    
+                }
+                
+        
+            };
+        }
+
+        
 
 
 
@@ -45,7 +124,7 @@ class TemplateCrawler {
         CrawlerUtils.saveState(__dirname, this.state);
 
         console.log('Finishing crawl: ' + this.config.id);
-    }
+    };
 
     async getData(url = this.config.start) {
 
