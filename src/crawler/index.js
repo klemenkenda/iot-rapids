@@ -41,4 +41,4 @@ function runLoop() {
 };
 
 runLoop();
-let timeout = setInterval(runLoop, 5 * 60 * 1000);
+const timeout = setInterval(runLoop, 24 * 10 * 60 * 1000);

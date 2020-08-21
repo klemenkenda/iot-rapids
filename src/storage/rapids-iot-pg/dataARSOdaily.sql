@@ -1,0 +1,10 @@
+insert into rapids_iot.sensor_types (uuid, phenomena, uom, description) values ('Ocenjena oblačnost', 'weather description', '', 'weather visual description');
+insert into rapids_iot.sensor_types (uuid, phenomena, uom, description) values ('Temperatura', 'temperature', '°C', 'temperature at 2m');
+insert into rapids_iot.sensor_types (uuid, phenomena, uom, description) values ('Vlažnost', 'humidity', '%', 'humidity');
+insert into rapids_iot.sensor_types (uuid, phenomena, uom, description) values ('Smer vetra', 'wind direction', '°', 'true north wind direction');
+insert into rapids_iot.sensor_types (uuid, phenomena, uom, description) values ('Hitrost vetra', 'wind speed', 'km/h', 'average wind speed');
+insert into rapids_iot.sensor_types (uuid, phenomena, uom, description) values ('Sunki vetra', 'gusts', 'km/h', 'gusts of wind');
+insert into rapids_iot.sensor_types (uuid, phenomena, uom, description) values ('Zračni tlak', 'atmospheric pressure', 'hPa', 'atmospheric pressure ground level');
+insert into rapids_iot.sensor_types (uuid, phenomena, uom, description) values ('Padavine', 'precipitation', 'mm', 'precipitation per m2');
+insert into rapids_iot.sensor_types (uuid, phenomena, uom, description) values ('Sončno obsevanje', 'radience', 'W/m2', 'sun radience per m2');
+insert into rapids_iot.sensor_types (uuid, phenomena, uom, description) values ('Višina snežne odeje', 'snow cover', 'cm', 'height of snow cover');

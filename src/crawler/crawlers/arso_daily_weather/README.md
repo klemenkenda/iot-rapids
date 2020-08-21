@@ -37,3 +37,32 @@ Current choices are:
 
 * parsing DOM - [`cheerio`](https://cheerio.js.org/)
 * handling time/date - [`moment`](https://momentjs.com/)
+
+### Crawler Specific
+
+WIND AND CLOUD COVERAGE:
+
+S -> 180
+SE -> 135
+SW -> 225
+N -> 0
+NE -> 45
+NW -> 315
+E -> 90
+W -> 270
+
+CLOUDS:
+
+clear: 0,
+mostClear: 1,
+partCloudy: 2,
+modCloudy: 3,
+modCloudy_lightRA: 4,
+prevCloudy: 5,
+overcast: 6,
+overcast_lightRA: 7,
+modRA: 8,
+lightDZ: 9
+
+If weather description is missing due to added classifications, inspect the code at https://meteo.arso.gov.si/met/sl/weather/observ/surface/ 
+and look for weather image url query that is not present above. 

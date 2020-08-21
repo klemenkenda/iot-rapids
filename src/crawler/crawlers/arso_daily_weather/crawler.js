@@ -5,7 +5,6 @@ const SQLUtils = require('../../utils/sqlutils');
 // external imports
 const cheerio = require('cheerio'); // handling DOM
 const moment = require('moment'); // handling time
-const { createPool } = require('mariadb');
 
 
 /**
@@ -34,90 +33,80 @@ class TemplateCrawler {
     async crawl() {
         console.log('Starting crawl: ' + this.config.id);
         // do the crawling here
-        let weatherData = await this.getData()
+
+        const weatherData = await this.getData();
+        let lastUnix; // unix timestamp of the last measurement
+
 
         // update datalake repository with the crawled data
         // update the state with the last crawled timestamp
         await this.dataLake(weatherData);
 
 
-        //   PUSHING TO DB
+        // pushing to db
 
-        //EXISTING PLACEHOLDERS
-        let nodes = await this.SQLUtils.getNodes();
+        // existing metadata
+        const nodes = await this.SQLUtils.getNodes();
         let sensors = await this.SQLUtils.getSensors();
-        //console.log(sensors)
-        //NODE 
-        for (let station of weatherData) {
-            const node = nodes.filter(x => x.uuid === station.Postaja);
+        // console.log(sensors)
+
+        // inserting nodes and sensors
+        for (const station of weatherData) {
+            const node = nodes.filter((x) => x.uuid === station.Postaja);
             let el = 0;
             if (node.length === 0) {
-                await this.SQLUtils.insertNode(station.Postaja, station.Postaja, `${station.Postaja} - samodejna postaja`)
+                await this.SQLUtils.insertNode(station.Postaja, station.Postaja, `${station.Postaja} - samodejna postaja`);
             };
 
-            const sensor = sensors.filter(x => x.node_uuid === station.Postaja);
-            
+            const sensor = sensors.filter((x) => x.node_uuid === station.Postaja);
+
             if (sensor.length === 0) {
                 let i = 0;
-                for (let variable of Object.entries(station)) {
-                    
-                    const sen = sensors.filter(x => x.uuid === variable[0]);
-                    
+                for (const stationSensors of Object.entries(station)) {
+                    const sen = sensors.filter((x) => x.uuid === stationSensors[0]);
+
                     if (sen.length === 0) {
-                        if (!variable[0].includes("Datum") && !variable[0].includes("Postaja")) {
-                        
-                            await this.SQLUtils.insertSensor(`${station.Postaja} - ${i}`, station.Postaja, variable[0], `${station.Postaja} - ${variable[0]}`)
+                        if (!stationSensors[0].includes('Datum') && !stationSensors[0].includes('Postaja')) {
+                            await this.SQLUtils.insertSensor(`${station.Postaja} - ${i}`, station.Postaja, stationSensors[0], `${station.Postaja} - ${stationSensors[0]}`);
                             i++;
                         }
                     }
-                    
-                    
                 }
-
             }
 
             let val;
             let date;
             let sensorUUID;
 
-            
-            for (let variable of Object.entries(station)) {
-                
-                
-                if (variable[0].includes("Datum")) {
-                    date = variable[1];
-                    
-                } else if (!variable[0].includes("Datum") && !variable[0].includes("Postaja")) {
+            // updating sensors array with new inserts
+            sensors = await this.SQLUtils.getSensors();
+
+            // inserting measurements
+            for (const stationSensors of Object.entries(station)) {
+                if (stationSensors[0].includes('Datum')) {
+                    date = stationSensors[1];
+                } else if (!stationSensors[0].includes('Datum') && !stationSensors[0].includes('Postaja')) {
                     sensorUUID = `${station.Postaja} - ${el}`;
-                    val = variable[1];
+                    val = stationSensors[1];
                     el++;
-                    
-                    for (let m of sensors) {
-                        if (sensorUUID === m.uuid) {
-                            
-                            
-                            
-                            let SQL = this.SQLUtils.insertMeasurementSQL(m.id, moment(date).unix(), val)
-                            this.SQLUtils.processSQL(SQL)
-                            
-                            
-                                
-                            
+
+                    for (const sensorMeta of sensors) {
+                        if ((sensorUUID === sensorMeta.uuid) && (val !== String.fromCharCode(160))) {
+                            if (isNaN(val)) val = this.stringDataConversion(val);
+
+                            try {
+                                const SQL = this.SQLUtils.insertMeasurementSQL(sensorMeta.id, moment(date).unix(), val);
+                                // console.log(SQL)
+
+                                if (moment(date).unix() !== this.lastUnix) {
+                                    this.SQLUtils.processSQL(SQL);
+                                }
+                            } catch (e) {console.log(SQL)}
                         }
                     }
-                
-                    
-                    
-                    
                 }
-                
-        
             };
         }
-
-        
-
-
 
 
         // write final state
@@ -127,92 +116,123 @@ class TemplateCrawler {
     };
 
     async getData(url = this.config.start) {
-
-        let weatherData = []
+        const weatherData = [];
 
         const body = await CrawlerUtils.getURL(url);
-        let rmeasurements = [];
-        let rheads = [];
-        let rstyleHtml = [];
+        const rawMeasurements = [];
+        const rawHeads = [];
+        const rawStyleHtml = [];
         const $ = cheerio.load(body);
-        
-        let data = $(".meteoSI-table tbody tr td").each((i, el) => {
-            let text = $(el).text()
-            rmeasurements.push(text);
-            rstyleHtml.push($(el).html());
 
+        $('.meteoSI-table tbody tr td').each((i, el) => {
+            const text = $(el).text();
+            rawMeasurements.push(text);
+            rawStyleHtml.push($(el).html());
         });
-        let head = $(".meteoSI-table thead tr th").each((i, el) => {
-            let text = $(el).text()
-            rheads.push(text);     
+        $('.meteoSI-table thead tr th').each((i, el) => {
+            const text = $(el).text();
+            rawHeads.push(text);
         });
 
-        let measurements = [];
-        while(rmeasurements.length) measurements.push(rmeasurements.splice(0,11));
+        const measurements = [];
+        while (rawMeasurements.length) measurements.push(rawMeasurements.splice(0, 11));
 
-        let heads = [];
-        while(rheads.length) heads.push(rheads.splice(0,11));
+        const heads = [];
+        while (rawHeads.length) heads.push(rawHeads.splice(0, 11));
 
-        let styleHtml = [];
-        while(rstyleHtml.length) styleHtml.push(rstyleHtml.splice(0,11));
+        const styleHtml = [];
+        while (rawStyleHtml.length) styleHtml.push(rawStyleHtml.splice(0, 11));
 
         let i = 0;
-        for (let station of measurements) {
-            
-            let stationData = {};
-            for (let varIdx in station) {
-                
+        for (const station of measurements) {
+            const stationData = {};
+            for (const varIdx in station) {
                 if (varIdx > 0) {
-                    stationData[heads[0][varIdx]] = station[varIdx];
+                    let sensorName;
+                    if (heads[0][varIdx].includes('[')) {
+                        sensorName = heads[0][varIdx].split('[')[0].trim();
+                        stationData[sensorName] = station[varIdx];
+                    } else stationData[heads[0][varIdx]] = station[varIdx];
                 } else {
-                    stationData["Postaja"] = station[varIdx];
-                    stationData["Datum"] = heads[0][varIdx];
-                
+                    stationData['Postaja'] = station[varIdx];
+                    stationData['Datum'] = heads[0][varIdx];
                 }
-                
-                if (styleHtml[i][varIdx].includes("/uploads/meteo/style/img")) {
 
-                       
-                    stationData[heads[0][varIdx]] = styleHtml[i][varIdx].slice(43, -6)
+                if (styleHtml[i][varIdx].includes('/uploads/meteo/style/img')) {
+                    // if image
+
+                    stationData[heads[0][varIdx]] = styleHtml[i][varIdx].slice(43, -6);
                 }
             }
             i++;
 
 
             weatherData.push(stationData);
+            // console.log(stationData)
         }
-    
+
         return weatherData;
-        
-        
     };
 
-    async dataLake(data) {
-        for (let station of data) {
-            let time = station.Datum.split(", ")[1].slice(0,-5)
-            station.Datum = moment(time, "DD-MM-YYYY HH:mm").toISOString(true);
-            let unix = moment(station.Datum).unix();
-            let lastUnix;
+    stringDataConversion(measurement) {
+        if (measurement == measurement.toUpperCase()) {
+            // if measurement is WIND DIRECTION - TRUE DIRECTION
+            const windConversionTable = {
+                S: 180,
+                SE: 135,
+                SW: 225,
+                N: 0,
+                NE: 45,
+                NW: 315,
+                E: 90,
+                W: 270};
+            return (windConversionTable[measurement]);
+        } else {
+            // if measurement is WEATHER DESCRIPION
+            const descriptionConversionTable = {
+                clear: 0,
+                mostClear: 1,
+                partCloudy: 2,
+                modCloudy: 3,
+                modCloudy_lightRA: 4,
+                prevCloudy: 5,
+                overcast: 6,
+                overcast_lightRA: 7,
+                modRA: 8,
+                lightDZ: 9,
+            };
             
+            if (descriptionConversionTable[measurement] == undefined) console.log("DescriptionConversionTable missing value for weather description. Please update the table.") 
+            return (descriptionConversionTable[measurement]);
+        }
+    }
+
+
+    async dataLake(data) {
+        for (const station of data) {
+            const time = station.Datum.split(', ')[1].slice(0, -5);
+            station.Datum = moment(time, 'DD-MM-YYYY HH:mm').toISOString(true);
+            const unix = moment(station.Datum).unix();
+
 
             if (this.state != {}) {
                 if (this.state[station.Postaja] !== undefined) {
-                    lastUnix = this.state[station.Postaja].lastRecord;
+                    this.lastUnix = this.state[station.Postaja].lastRecord;
+                    this.state[station.Postaja]['lastRecord'] = unix;
                 } else {
-                    this.state[station.Postaja] = {"lastRecord" : unix};
+                    this.state[station.Postaja] = {'lastRecord': unix};
                 }
             }
-            if (lastUnix !== unix) {
+
+            if (this.lastUnix !== unix) {
                 CrawlerUtils.saveToDataLake(JSON.stringify(station), time, {
                     dir: this.config.id,
                     type: this.config.log_type,
                     name: station.Postaja,
-                })
+                });
             }
-            
         }
     }
-    
 
 
     /**
