@@ -1,3 +1,9 @@
 [
-    "arso-weather"
+    "arso-weather",
+    "arso-daily-weather",
+    "opendata.si_promet",
+    "goriva.si",
+    "arso-groundwater",
+    "arso-surfacewater"
+
 ]

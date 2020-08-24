@@ -62,7 +62,8 @@ prevCloudy: 5,
 overcast: 6,
 overcast_lightRA: 7,
 modRA: 8,
-lightDZ: 9
+lightDZ: 9,
+modDZ: 10
 
 If weather description is missing due to added classifications, inspect the code at https://meteo.arso.gov.si/met/sl/weather/observ/surface/ 
 and look for weather image url query that is not present above. 

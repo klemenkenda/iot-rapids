@@ -33,9 +33,7 @@ class TemplateCrawler {
     async crawl() {
         console.log('Starting crawl: ' + this.config.id);
         // do the crawling here
-
         const weatherData = await this.getData();
-        let lastUnix; // unix timestamp of the last measurement
 
 
         // update datalake repository with the crawled data
@@ -200,9 +198,11 @@ class TemplateCrawler {
                 overcast_lightRA: 7,
                 modRA: 8,
                 lightDZ: 9,
+                modDZ: 10,
+                modCloudy_lightDZ: 11
             };
             
-            if (descriptionConversionTable[measurement] == undefined) console.log("DescriptionConversionTable missing value for weather description. Please update the table.") 
+            if (descriptionConversionTable[measurement] == undefined) console.log("ARSO_DAILY_CRAWLER: DescriptionConversionTable missing value for weather description. Please update the table.") 
             return (descriptionConversionTable[measurement]);
         }
     }
@@ -213,6 +213,7 @@ class TemplateCrawler {
             const time = station.Datum.split(', ')[1].slice(0, -5);
             station.Datum = moment(time, 'DD-MM-YYYY HH:mm').toISOString(true);
             const unix = moment(station.Datum).unix();
+            
 
 
             if (this.state != {}) {
@@ -225,7 +226,7 @@ class TemplateCrawler {
             }
 
             if (this.lastUnix !== unix) {
-                CrawlerUtils.saveToDataLake(JSON.stringify(station), time, {
+                CrawlerUtils.saveToDataLake(JSON.stringify(station), moment.unix(unix), {
                     dir: this.config.id,
                     type: this.config.log_type,
                     name: station.Postaja,

@@ -34,7 +34,6 @@ class ArsoWeatherSloveniaCrawler {
      */
     async crawl() {
         console.log('Starting crawl: ' + this.config.id);
-
         // retrieve data from SQL
         let places = await this.SQLUtils.getPlaces();
         const nodes = await this.SQLUtils.getNodes();
@@ -208,13 +207,13 @@ class ArsoWeatherSloveniaCrawler {
     }
 
     async getWeatherData(places, url = this.config.url_data, vars = this.config.variables,
-        update = this.config.update, timeInterval = this.timeInterval) {
+        timeInterval = this.timeInterval) {
         const weather = [];
         let i = 0;
 
         for (const station of places) {
             i++;
-            const weatherUrl = url + 'vars=' + vars + '&group=' + update + 'Data0&type=' + update + '&id=' + station.uuid + '&d1=' + timeInterval[0] + '&d2=' + timeInterval[0];
+            const weatherUrl = url + 'vars=' + vars + '&group=halfhourlyData0&type=halfhourly&id=' + station.uuid + '&d1=' + timeInterval[0] + '&d2=' + timeInterval[0];
             const body = await CrawlerUtils.getURL(weatherUrl);
             const $ = cheerio.load(body, {xmlMode: true});
             const stringData = '{' + $('pujs').text().slice(117, -1);
