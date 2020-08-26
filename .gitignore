@@ -108,3 +108,5 @@ package-lock.json
 
 # CSV files
 *.csv
+
+.vscode

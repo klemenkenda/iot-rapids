@@ -1,0 +1,13 @@
+{
+    "id": "pxweb_template",
+    "data-lake-type": "ldjson",
+    "log_type": "yearly",
+    "update": "1d",
+    "url": "https://pxweb.stat.si:443/SiStatDb/api/v1/sl/20_Ekonomsko/14_poslovni_subjekti/01_14188_podjetja/1418807S.px",
+    "db_uuid": "podjetja_obcine",
+    "short_db_name": "Podjetja po občinah",
+    "geo_metric_uuid": "obcina",
+    "restrictions": {
+      "MERITVE": [1, 2, 3]
+    }
+}
