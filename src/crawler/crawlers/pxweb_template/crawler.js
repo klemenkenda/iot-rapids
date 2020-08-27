@@ -15,18 +15,33 @@ class SiStatCrawler {
     /**
      * Responsible for loading state
      */
-    constructor() {
+    constructor(id) {
         // loading config
         this.config = CrawlerUtils.loadConfig(__dirname);
-        // loading state
-        this.state = CrawlerUtils.loadState(__dirname);
+        // do not load state here
         this.SQLUtils = new SQLUtils();
         this.SQLUtils.getSensorTypes();
+        for (let x=0; x<this.config.length; x++) {
+            if (id === this.config[x].id) {
+                this.config = CrawlerUtils.loadConfig(__dirname)[x];
+                return
+            }
+        }
+        console.error("Wrong crawler id!")
     }
 
     static getTs(t) {
-        // TODO: Support more than just years: quarters, months...
-        return moment(t).add(1, 'y').unix();
+        if (t.match(/\d{4}M\d{2}/)) { // parse format like 2020M03
+            const year = t.substring(0, 4);
+            const month = parseInt(t.substring(5));
+            return moment(year).add(month, 'M').unix();
+        }
+        if (t.match(/\d{4}Q\d{2}/)) { // parse format like 2020Q01
+            const year = t.substring(0, 4);
+            const quarter = parseInt(t.substring(5));
+            return moment(year).add(3 * quarter, 'M').unix();
+        }
+        return moment(t).unix();
     }
 
     static getLocation() {
@@ -44,7 +59,8 @@ class SiStatCrawler {
 
     async crawl() {
         console.log('Starting crawl: ' + this.config.id);
-        // do the crawling here
+        this.state = CrawlerUtils.loadState(__dirname); // load state here as state would be overwritten if multiple crawlers are used
+
         try {
             const places = await this.SQLUtils.getPlaces();
             const nodes = await this.SQLUtils.getNodes();
@@ -170,7 +186,6 @@ class SiStatCrawler {
             await this.SQLUtils.processSQL(insertQuery);
             console.log("Finished inserting measurements.")
             
-            
             // write final state
 
             CrawlerUtils.saveState(__dirname, this.state);
@@ -180,6 +195,7 @@ class SiStatCrawler {
         }
         
         console.log('Finishing crawl: ' + this.config.id);
+    
     }
 
     /**

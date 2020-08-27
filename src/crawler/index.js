@@ -34,10 +34,10 @@ crawlerConfigs.forEach((crawler) => {
 });
 
 // hardcoded loop
-function runLoop() {
-    crawlers.forEach(async (crawler) => {
+async function runLoop() {
+    for (let crawler of crawlers) {
         await crawler.crawl();
-    });
+    }
 };
 
 runLoop();

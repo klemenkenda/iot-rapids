@@ -1,5 +1,6 @@
-{
-    "id": "pxweb_template",
+[
+  {
+    "id": "pxweb1",
     "data-lake-type": "ldjson",
     "log_type": "yearly",
     "update": "1d",
@@ -8,6 +9,19 @@
     "short_db_name": "Podjetja po občinah",
     "geo_metric_uuid": "obcina",
     "restrictions": {
-      "MERITVE": [1, 2, 3]
     }
-}
+  },
+  {
+    "id": "pxweb2",
+    "data-lake-type": "ldjson",
+    "log_type": "yearly",
+    "update": "1d",
+    "url": "https://pxweb.stat.si:443/SiStatDb/api/v1/sl/20_Ekonomsko/04_cene/04250_IUC/0425005S.px",
+    "db_uuid": "indeksi_uvoznih_neevro",
+    "short_db_name": "Indeksi uvoznih cen neevro območje (CPA 2015)",
+    "geo_metric_uuid": "obcina",
+    "restrictions": {
+      "INDEKS": [11]
+    }
+  }
+]
