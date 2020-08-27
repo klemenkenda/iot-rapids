@@ -86,7 +86,7 @@ class SiStatCrawler {
 
             let geoDimension = j.Dataset(0).role.geo; // e.g. "OBČINE", "KOHEZIJSKI REGIJI" ...
             let timeDimension = j.Dataset(0).role.time; // e.g. "LETO" (year)
-            if (geoDimension.length > 1 || timeDimension.length != 1) {
+            if ((geoDimension && geoDimension.length > 1) || timeDimension.length != 1) {
                 throw new Error("Can't handle dataset (too many geoDimensions or timeDimensions)");
             }
             timeDimension = timeDimension[0];
@@ -95,24 +95,24 @@ class SiStatCrawler {
 
             j.Dataset(0).toTable({ type: 'arrobj', content: 'id' }, (data, _) => {
                         let currentRegion = '0'; // default region (Slovenia) if there is no geoDimension
-                        if (geoDimension.length > 0) currentRegion = data[geoDimension[0]];
-                        const stateRegionKey = 'lastTs_' + DBuuid + '_' + currentRegion;
+                        if (geoDimension && geoDimension.length > 0) currentRegion = data[geoDimension[0]];
+                        let currentSensor = DBuuid;
+                        for (let c of measurementColumns) {
+                            currentSensor += '-' + data[c];
+                        };
+                        const stateRegionKey = 'lastTs_' + DBuuid + '_' + currentRegion + '_' + currentSensor;
                         if (this.state[stateRegionKey] === undefined) {
                             this.state[stateRegionKey] = 0;
                         }
-                        //this.state[stateRegionKey] = 0;
                         const lastTs = SiStatCrawler.getTs(data[timeDimension]);
 
                         if (lastTs > this.state[stateRegionKey]) {
                             // A new data point!
-                            this.state[stateRegionKey] = data[timeDimension]; // update most recent year
+                            this.state[stateRegionKey] = lastTs; // update most recent year
                             if (locations[currentRegion] === undefined) {
                                 locations[currentRegion] = {};
                             }
-                            let currentSensor = DBuuid;
-                            for (let c of measurementColumns) {
-                                currentSensor += '-' + data[c];
-                            };
+                            
                             const obj = { 'ts': lastTs , 'val': data.value};
                             if (locations[currentRegion][currentSensor] === undefined) {
                                 locations[currentRegion][currentSensor] = [];
@@ -122,8 +122,8 @@ class SiStatCrawler {
                         };
                     }
             );
-            
-            const regionsDict = j.Dataset(0).Dimension(geoDimension[0]).__tree__.category.label;
+            let regionsDict = {'0': 'SLOVENIJA'}
+            if (geoDimension) regionsDict = j.Dataset(0).Dimension(geoDimension[0]).__tree__.category.label;
             
             sensors = await this.SQLUtils.getSensors(); 
             let insertQuery = '';
@@ -150,6 +150,15 @@ class SiStatCrawler {
                         sensors = await this.SQLUtils.getSensors();
                         sensor = sensors.filter(x => x.uuid === sensor_uuid)
                     }
+                };
+            };
+
+            sensors = await this.SQLUtils.getSensors();
+
+            for (let location of Object.keys(locations)) { // have to do another loop as sensors are not properly refreshed otherwise for some reason
+                for (let sensor_type of Object.keys(locations[location])) {
+                    const sensor_uuid = sensor_type + '_' + location;
+                    let sensor = sensors.filter(x => x.uuid == sensor_uuid);
                     const records = locations[location][sensor_type];
                     for (let record of records) {
                         insertQuery += this.SQLUtils.insertMeasurementSQL(sensor[0].id, record.ts, record.val)
