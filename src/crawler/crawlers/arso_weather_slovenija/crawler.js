@@ -3,13 +3,11 @@ const CrawlerUtils = require('../../utils/crawlerutils');
 const SQLUtils = require('../../utils/sqlutils.js');
 
 // external imports
-const cheerio = require('cheerio');
-
-// const cheerio = require('cheerio'); // handling DOM
+const cheerio = require('cheerio'); // handling DOM
 const moment = require('moment'); // handling time
 
 /**
- * Class for template crawler.
+ * Crawler for ARSO weather archives.
  */
 class ArsoWeatherSloveniaCrawler {
     /**
@@ -21,16 +19,13 @@ class ArsoWeatherSloveniaCrawler {
         // loading state
         this.state = CrawlerUtils.loadState(__dirname);
         this.timeInterval = [this.config.start_time, moment().subtract(1, 'day').format('YYYY-MM-DD')];
-
         this.SQLUtils = new SQLUtils();
-        // this.SQLUtils.getPlaces();
     }
     /**
      * Responsible for crawling at one step.
      *
-     * NOTE: Take care that the crawler is resistant to delays (it crawls
-     * also historic data if needed). Crawler should provide all the steps
-     * denoted in the comments of this method.
+     * Crawler functionality: arso_weather_slovenija crawls archive data from meteo.arso.gov.si
+     * ARSO archives are updated daily and include measurements with a 2 day delay. Crawler performs a refresh once daily.
      */
     async crawl() {
         console.log('Starting crawl: ' + this.config.id);
@@ -39,14 +34,12 @@ class ArsoWeatherSloveniaCrawler {
         const nodes = await this.SQLUtils.getNodes();
         let sensors = await this.SQLUtils.getSensors();
 
-
         // do the crawling here
         try {
             const placeData = await this.getLocationData();
-
             const abort = await this.checkLastCrawl();
-            // checks time of last crawl - if none starts from selected start date
 
+            // checks time of last crawl - if none starts from selected start date
             const stationNames = [];
             const stationInfo = [];
 
@@ -57,12 +50,10 @@ class ArsoWeatherSloveniaCrawler {
                     x: placeData.points[el].lon,
                     y: placeData.points[el].lat,
                 };
-
                 stationNames.push(node_p.title);
                 stationInfo.push(node_p);
 
                 // does this place already exist?
-
                 const place = places.filter((x) => x.uuid === node_p.uuid);
                 if (place.length === 0) {
                     try {
@@ -84,9 +75,7 @@ class ArsoWeatherSloveniaCrawler {
             while ((moment(this.timeInterval[0]).isBefore(this.timeInterval[1])) && abort !== true) {
                 // Sorting specific crawl data to arrays to use later
                 places = await this.SQLUtils.getPlaces();
-
                 const weatherData = await this.getWeatherData(places);
-
                 let param;
                 let weatherParamSorted;
                 const stationList = [];
@@ -112,17 +101,15 @@ class ArsoWeatherSloveniaCrawler {
                                 'Date': lastMeasure,
                             };
                             for (const i in param) {
-                                if (Object.entries(el[ts])[i]) {
-                                    measurement[`${param[i].name} [${param[i].unit}]`] = `${Object.entries(el[ts])[i][1]}`;
+                                if (Object.keys(el[ts])[i]) {
+                                    measurement[`${param[i].name} [${param[i].unit}]`] = `${Object.values(el[ts])[i]}`;
                                 } else {
                                     measurement[`${param[i].name} [${param[i].unit}]`] = '/';
                                 }
                             }
-
                             stationData.push(JSON.stringify(measurement));
                         }
                     }
-
 
                     // Inserting sensors
                     sensors = await this.SQLUtils.getSensors();
@@ -130,20 +117,21 @@ class ArsoWeatherSloveniaCrawler {
                         for (const sensor of weatherParamSorted) {
                             const duplicateSensor = sensors.filter((x) => x.uuid === `${stationInfo[idx].uuid} - ${sensor.slice(1)}`);
                             if (duplicateSensor.length === 0) {
-                                await this.SQLUtils.insertSensor(`${stationInfo[idx].uuid} - ${sensor.slice(1)}`, stationInfo[idx].uuid, weatherData[station].params[sensor].name, `${stationInfo[idx].title} - ${weatherData[station].params[sensor].name}`).catch();
+                                await this.SQLUtils.insertSensor(`${stationInfo[idx].uuid} - ${sensor.slice(1)}`,
+                                    stationInfo[idx].uuid, weatherData[station].params[sensor].name,
+                                    `${stationInfo[idx].title} - ${weatherData[station].params[sensor].name}`).catch();
                             };
                         }
                     }
 
                     // Inserting measurements
-
-
                     for (const uuids of Object.keys(weatherData[station].points)) {
                         for (const timestamps of Object.keys(weatherData[station].points[uuids])) {
                             for (const sensorKey of Object.keys(weatherData[station].points[uuids][timestamps])) {
                                 for (const existingSensors of (Object.values(sensors))) {
                                     if (existingSensors.uuid == uuids.slice(1) + ' - ' + sensorKey.slice(1)) {
-                                        const SQL = this.SQLUtils.insertMeasurementSQL(existingSensors.id, (parseInt(timestamps.slice(1))-89411160)*60, weatherData[station].points[uuids][timestamps][sensorKey]);
+                                        const SQL = this.SQLUtils.insertMeasurementSQL(existingSensors.id, (parseInt(timestamps.slice(1))-89411160)*60,
+                                            weatherData[station].points[uuids][timestamps][sensorKey]);
                                         try {
                                             this.SQLUtils.processSQL(SQL);
                                         } catch (e) {
@@ -172,11 +160,8 @@ class ArsoWeatherSloveniaCrawler {
                         });
                     }
 
-
                     // Update the state with the last crawled timestamp
-
                     this.updateState(stationList, lastUnix);
-
 
                     // Write final state
                     CrawlerUtils.saveState(__dirname, this.state);
@@ -187,10 +172,8 @@ class ArsoWeatherSloveniaCrawler {
         } catch (e) {
             console.log('ERROR:', e);
         }
-
         console.log('Finishing crawl: ' + this.config.id);
     }
-
 
     async getLocationData(base_loc = this.config.url_locations,
         timeInterval = this.timeInterval,
@@ -199,10 +182,10 @@ class ArsoWeatherSloveniaCrawler {
         const body = await CrawlerUtils.getURL(url);
         const $ = cheerio.load(body, {xmlMode: true});
         const stringData = $('pujs').text().slice(17, -2);
-        const locationData = JSON.parse(stringData.replace(/(\w+:)|(\w+ :)/g, function(s) {
-            return '"' + s.substring(0, s.length-1) + '":';
+        // Removing whitespaces and trimming strings for future use
+        const locationData = JSON.parse(stringData.replace(/(\w+:)|(\w+ :)/g, (s) => {
+            return '"' + s.substring(0, s.length - 1) + '":';
         }));
-
         return locationData;
     }
 
@@ -223,10 +206,8 @@ class ArsoWeatherSloveniaCrawler {
             ;
             weather.push(weatherData);
         }
-
         return weather;
     }
-
 
     checkLastCrawl() {
         if (Object.values(this.state).length !== 0) {
@@ -245,7 +226,6 @@ class ArsoWeatherSloveniaCrawler {
         }
     }
 
-
     findWithAttr(array, attr, value) {
         for (let i = 0; i < array.length; i += 1) {
             if (array[i][attr] === value) {
@@ -255,12 +235,12 @@ class ArsoWeatherSloveniaCrawler {
         return -1;
     }
 
-
     updateState(stationList, lastRecord) {
         for (const name of stationList) {
             this.state[name] = {'lastRecord': lastRecord};
         }
     }
+
     /**
      * Loads the datalake data into the database.
      */
@@ -268,6 +248,5 @@ class ArsoWeatherSloveniaCrawler {
         // load the data from datalake into the db
     }
 }
-
 
 module.exports = ArsoWeatherSloveniaCrawler;

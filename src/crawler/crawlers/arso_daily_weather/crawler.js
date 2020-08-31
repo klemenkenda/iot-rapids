@@ -6,11 +6,10 @@ const SQLUtils = require('../../utils/sqlutils');
 const cheerio = require('cheerio'); // handling DOM
 const moment = require('moment'); // handling time
 
-
 /**
- * Class for template crawler.
+ * Crawler for ARSO automatic weather stations.
  */
-class TemplateCrawler {
+class ArsoDailyWeatherCrawler {
     /**
      * Responsible for loading state
      */
@@ -26,27 +25,23 @@ class TemplateCrawler {
     /**
      * Responsible for crawling at one step.
      *
-     * NOTE: Take care that the crawler is resistant to delays (it crawls
-     * also historic data if needed). Crawler should provide all the steps
-     * denoted in the comments of this method.
+     * Crawler functionality: arso_daily_weather crawls live weather data from meteo.arso.gov.si that updates
+     * every 10 minutes.
+     *
      */
     async crawl() {
         console.log('Starting crawl: ' + this.config.id);
         // do the crawling here
         const weatherData = await this.getData();
 
-
         // update datalake repository with the crawled data
         // update the state with the last crawled timestamp
         await this.dataLake(weatherData);
 
-
         // pushing to db
-
         // existing metadata
         const nodes = await this.SQLUtils.getNodes();
         let sensors = await this.SQLUtils.getSensors();
-        // console.log(sensors)
 
         // inserting nodes and sensors
         for (const station of weatherData) {
@@ -55,23 +50,19 @@ class TemplateCrawler {
             if (node.length === 0) {
                 await this.SQLUtils.insertNode(station.Postaja, station.Postaja, `${station.Postaja} - samodejna postaja`);
             };
-
             const sensor = sensors.filter((x) => x.node_uuid === station.Postaja);
-
             if (sensor.length === 0) {
                 let i = 0;
-                for (const stationSensors of Object.entries(station)) {
-                    const sen = sensors.filter((x) => x.uuid === stationSensors[0]);
-
+                for (const stationSensors of Object.keys(station)) {
+                    const sen = sensors.filter((x) => x.uuid === stationSensors);
                     if (sen.length === 0) {
-                        if (!stationSensors[0].includes('Datum') && !stationSensors[0].includes('Postaja')) {
-                            await this.SQLUtils.insertSensor(`${station.Postaja} - ${i}`, station.Postaja, stationSensors[0], `${station.Postaja} - ${stationSensors[0]}`);
+                        if (!stationSensors.includes('Datum') && !stationSensors.includes('Postaja')) {
+                            await this.SQLUtils.insertSensor(`${station.Postaja} - ${i}`, station.Postaja, stationSensors, `${station.Postaja} - ${stationSensors}`);
                             i++;
                         }
                     }
                 }
             }
-
             let val;
             let date;
             let sensorUUID;
@@ -80,32 +71,33 @@ class TemplateCrawler {
             sensors = await this.SQLUtils.getSensors();
 
             // inserting measurements
-            for (const stationSensors of Object.entries(station)) {
-                if (stationSensors[0].includes('Datum')) {
-                    date = stationSensors[1];
-                } else if (!stationSensors[0].includes('Datum') && !stationSensors[0].includes('Postaja')) {
+            for (const stationSensors of Object.keys(station)) {
+                if (stationSensors.includes('Datum')) {
+                    date = station[stationSensors];
+                } else if (!stationSensors.includes('Datum') && !stationSensors.includes('Postaja')) {
                     sensorUUID = `${station.Postaja} - ${el}`;
-                    val = stationSensors[1];
+                    val = station[stationSensors];
                     el++;
 
                     for (const sensorMeta of sensors) {
                         if ((sensorUUID === sensorMeta.uuid) && (val !== String.fromCharCode(160))) {
-                            if (isNaN(val)) val = this.stringDataConversion(val);
-
+                            if (isNaN(val)) {
+                                val = this.stringDataConversion(val);
+                            }
                             try {
                                 const SQL = this.SQLUtils.insertMeasurementSQL(sensorMeta.id, moment(date).unix(), val);
                                 // console.log(SQL)
-
                                 if (moment(date).unix() !== this.lastUnix) {
                                     this.SQLUtils.processSQL(SQL);
                                 }
-                            } catch (e) {console.log(SQL)}
+                            } catch (e) {
+                                console.log(SQL);
+                            }
                         }
                     }
                 }
             };
         }
-
 
         // write final state
         CrawlerUtils.saveState(__dirname, this.state);
@@ -115,13 +107,11 @@ class TemplateCrawler {
 
     async getData(url = this.config.start) {
         const weatherData = [];
-
         const body = await CrawlerUtils.getURL(url);
         const rawMeasurements = [];
         const rawHeads = [];
         const rawStyleHtml = [];
         const $ = cheerio.load(body);
-
         $('.meteoSI-table tbody tr td').each((i, el) => {
             const text = $(el).text();
             rawMeasurements.push(text);
@@ -132,15 +122,19 @@ class TemplateCrawler {
             rawHeads.push(text);
         });
 
+        // shaping 1D arrays with length n to 2D arrays with length 11 (number of different station sensors)
         const measurements = [];
-        while (rawMeasurements.length) measurements.push(rawMeasurements.splice(0, 11));
-
+        while (rawMeasurements.length) {
+            measurements.push(rawMeasurements.splice(0, 11));
+        }
         const heads = [];
-        while (rawHeads.length) heads.push(rawHeads.splice(0, 11));
-
+        while (rawHeads.length) {
+            heads.push(rawHeads.splice(0, 11));
+        }
         const styleHtml = [];
-        while (rawStyleHtml.length) styleHtml.push(rawStyleHtml.splice(0, 11));
-
+        while (rawStyleHtml.length) {
+            styleHtml.push(rawStyleHtml.splice(0, 11));
+        }
         let i = 0;
         for (const station of measurements) {
             const stationData = {};
@@ -156,19 +150,14 @@ class TemplateCrawler {
                     stationData['Datum'] = heads[0][varIdx];
                 }
 
+                // if image => get the title of the image to later convert to integer
                 if (styleHtml[i][varIdx].includes('/uploads/meteo/style/img')) {
-                    // if image
-
                     stationData[heads[0][varIdx]] = styleHtml[i][varIdx].slice(43, -6);
                 }
             }
             i++;
-
-
             weatherData.push(stationData);
-            // console.log(stationData)
         }
-
         return weatherData;
     };
 
@@ -183,7 +172,8 @@ class TemplateCrawler {
                 NE: 45,
                 NW: 315,
                 E: 90,
-                W: 270};
+                W: 270,
+            };
             return (windConversionTable[measurement]);
         } else {
             // if measurement is WEATHER DESCRIPION
@@ -193,29 +183,46 @@ class TemplateCrawler {
                 partCloudy: 2,
                 modCloudy: 3,
                 modCloudy_lightRA: 4,
-                prevCloudy: 5,
-                overcast: 6,
-                overcast_lightRA: 7,
-                modRA: 8,
-                lightDZ: 9,
-                modDZ: 10,
-                modCloudy_lightDZ: 11
+                modCloudy_lightDZ: 5,
+                prevCloudy: 6,
+                prevCloudy_lightRA: 7,
+                prevCloudy_modRA: 8,
+                prevCloudy_heavyRA: 9,
+                overcast: 10,
+                overcast_lightRA: 11,
+                overcast_modRA: 12,
+                overcast_heavyRA: 13,
+                overcast_heavySN: 14,
+                overcast_lightSHGR: 15,
+                lightRA: 16,
+                modRA: 17,
+                heavyRA: 18,
+                lightDZ: 19,
+                modDZ: 20,
+                heavyDZ: 21,
+                FG_heavyRA: 22,
+                FG_modRA: 23,
+                heavySN: 24,
+                overcast_modRASN: 25,
+                modRASN: 26,
             };
-            
-            if (descriptionConversionTable[measurement] == undefined) console.log("ARSO_DAILY_CRAWLER: DescriptionConversionTable missing value for weather description. Please update the table.") 
+            if (descriptionConversionTable[measurement] == undefined) {
+                console.log('ARSO_DAILY_CRAWLER: DescriptionConversionTable missing value for weather description.');
+                console.log('Please update the table for value: ' + measurement + '.');
+            }
             return (descriptionConversionTable[measurement]);
         }
     }
 
-
+    /*
+    * Updates current state of each weather station
+    * Prepares and saves crawled weather data to DataLake as .ldjson
+    */
     async dataLake(data) {
         for (const station of data) {
             const time = station.Datum.split(', ')[1].slice(0, -5);
             station.Datum = moment(time, 'DD-MM-YYYY HH:mm').toISOString(true);
             const unix = moment(station.Datum).unix();
-            
-
-
             if (this.state != {}) {
                 if (this.state[station.Postaja] !== undefined) {
                     this.lastUnix = this.state[station.Postaja].lastRecord;
@@ -224,7 +231,6 @@ class TemplateCrawler {
                     this.state[station.Postaja] = {'lastRecord': unix};
                 }
             }
-
             if (this.lastUnix !== unix) {
                 CrawlerUtils.saveToDataLake(JSON.stringify(station), moment.unix(unix), {
                     dir: this.config.id,
@@ -235,7 +241,6 @@ class TemplateCrawler {
         }
     }
 
-
     /**
      * Loads the datalake data into the database.
      */
@@ -244,4 +249,4 @@ class TemplateCrawler {
     }
 }
 
-module.exports = TemplateCrawler;
+module.exports = ArsoDailyWeatherCrawler;
