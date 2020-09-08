@@ -1,0 +1,7 @@
+{
+    "id": "arso-daily-weather",
+    "data-lake-type": "ldjson",
+    "log_type": "yearly",
+    "update": "10m",
+    "start": "http://meteo.arso.gov.si//uploads/probase/www/observ/surface/text/sl/observationAms_si_latest.html"
+}
