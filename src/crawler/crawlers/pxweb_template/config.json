@@ -23,5 +23,27 @@
     "restrictions": {
       "INDEKS": [11]
     }
+  },
+  {
+    "id": "pxweb3",
+    "data-lake-type": "ldjson",
+    "log_type": "yearly",
+    "update": "1d",
+    "url": "https://pxweb.stat.si:443/SiStatDb/api/v1/sl/30_Okolje/18_energetika/03_18176_elektricna_energija/1817601S.px",
+    "db_uuid": "energetika_elektricna_energija",
+    "short_db_name": "Električna energija",
+    "geo_metric_uuid": "obcina"
+  },
+  {
+    "id": "pxweb4",
+    "data-lake-type": "ldjson",
+    "log_type": "yearly",
+    "update": "1d",
+    "url": "https://pxweb.stat.si:443/SiStatDb/api/v1/sl/30_Okolje/18_energetika/04_18180_goriva/1818002S.px",
+    "db_uuid": "energetika_bilanca_goriv",
+    "short_db_name": "Bilanca trdnih, tekočih in plinastih goriv",
+    "geo_metric_uuid": "obcina"
   }
 ]
+
+

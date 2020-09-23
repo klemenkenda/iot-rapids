@@ -144,7 +144,7 @@ class SiStatCrawler {
             sensors = await this.SQLUtils.getSensors(); 
             let insertQuery = '';
             for (let location of Object.keys(locations)) {
-                const loc_id = this.config.geo_metric_uuid + '_' + location;
+                const loc_id = this.config.geo_metric_uuid + '_' + regionsDict[location];
                 const loc = places.filter(x => x.uuid === loc_id);
                 if (loc.length === 0) {
                     const loc_title = this.config.geo_metric_uuid + ' ' + regionsDict[location];
