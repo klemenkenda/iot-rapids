@@ -1,13 +1,12 @@
 // includes
 const mariadb = require('mariadb');
-const { Pool } = require('pg');
+const {Pool} = require('pg');
 
 /**
  * A class for different utils for working with crawlers in
  * rapids-iot.
  */
 class SQLUtils {
-
     constructor(config) {
         this.config = require('../../common/config.json')['storage']['rapids-iot-pg'];
         this.pool = null;
@@ -21,7 +20,7 @@ class SQLUtils {
             user: this.config.user,
             password: this.config.password,
             database: this.config.db,
-        })
+        });
     }
 
     connectToMariaDB() {
@@ -30,7 +29,7 @@ class SQLUtils {
             host: this.config.host,
             user: 'root',
             password: this.config.root_password,
-            multipleStatements: true
+            multipleStatements: true,
         });
     }
 
@@ -43,13 +42,13 @@ class SQLUtils {
         try {
             // retrieve places
             const sql = `select * from rapids_iot.places`;
-            let data = await this.pool.query(sql);
+            const data = await this.pool.query(sql);
 
             // delete unnecessary data
             return data.rows;
-        } catch(e) {
+        } catch (e) {
             // display error and assume the link is down - repeat connecting to DB
-            console.log("Error", e);
+            console.log('Error', e);
         }
     }
 
@@ -62,12 +61,12 @@ class SQLUtils {
             `;
 
             this.pool.query(sql);
-            console.log("Inserted place: " + uuid);
+            console.log('Inserted place: ' + uuid);
 
             return true;
         } catch (e) {
             // display error and assume the link is down - repeat connecting to DB
-            console.log("Error", e);
+            console.log('Error', e);
             return false;
         }
     }
@@ -81,13 +80,13 @@ class SQLUtils {
         try {
             // retrieve places
             const sql = `select * from rapids_iot.nodes`;
-            let data = await this.pool.query(sql);
+            const data = await this.pool.query(sql);
 
             // delete unnecessary data
             return data.rows;
-        } catch(e) {
+        } catch (e) {
             // display error and assume the link is down - repeat connecting to DB
-            console.log("Error", e);
+            console.log('Error', e);
         };
     }
 
@@ -100,12 +99,12 @@ class SQLUtils {
             `;
 
             this.pool.query(sql);
-            console.log("Inserted node: " + uuid);
+            console.log('Inserted node: ' + uuid);
 
             return true;
         } catch (e) {
             // display error and assume the link is down - repeat connecting to DB
-            console.log("Error", e);
+            console.log('Error', e);
             return false;
         }
     }
@@ -119,12 +118,12 @@ class SQLUtils {
         try {
             // retrieve places
             const sql = `select * from rapids_iot.sensors`;
-            let data = await this.pool.query(sql);
+            const data = await this.pool.query(sql);
 
             return data.rows;
-        } catch(e) {
+        } catch (e) {
             // display error and assume the link is down - repeat connecting to DB
-            console.log("Error", e);
+            console.log('Error', e);
         }
     }
 
@@ -150,12 +149,12 @@ class SQLUtils {
             `;
 
             this.pool.query(sql);
-            console.log("Inserted sensor: " + uuid);
+            console.log('Inserted sensor: ' + uuid);
 
             return true;
         } catch (e) {
             // display error and assume the link is down - repeat connecting to DB
-            console.log("Error", e);
+            console.log('Error', e);
             return false;
         };
     }
@@ -195,7 +194,7 @@ class SQLUtils {
             return true;
         } catch (e) {
             // display error and assume the link is down - repeat connecting to DB
-            console.log("Error", e);
+            console.log('Error', e);
             return false;
         }
     }
@@ -215,11 +214,10 @@ class SQLUtils {
             return true;
         } catch (e) {
             // display error and assume the link is down - repeat connecting to DB
-            console.log("Error", e);
+            console.log('Error', e);
             return false;
         }
     }
-
 }
 
 module.exports = SQLUtils;

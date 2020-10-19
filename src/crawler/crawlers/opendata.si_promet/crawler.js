@@ -19,7 +19,7 @@ class OpendataSiPrometCrawler {
         this.state = CrawlerUtils.loadState(__dirname);
         // sensor types
         this.sensor_types = [
-            "gap", "speed", "number", "class"
+            'gap', 'speed', 'number', 'class',
         ];
 
         // connect to DB
@@ -59,7 +59,7 @@ class OpendataSiPrometCrawler {
                 const items = json.Contents[0].Data.Items;
                 // counter
                 let i = -1;
-                let insertSQL = "";
+                let insertSQL = '';
                 for (const el of items) {
                     i++;
                     // extract node data
@@ -67,37 +67,37 @@ class OpendataSiPrometCrawler {
                     const node_p = {
                         x: el.x_wgs,
                         y: el.y_wgs,
-                        title: el.stevci_cestaOpis + ", " + el.stevci_lokacijaOpis,
-                        uuid: (el.stevci_cestaOpis + "-" + el.stevci_lokacijaOpis).replace(/\s+/g, '')
-                    }
+                        title: el.stevci_cestaOpis + ', ' + el.stevci_lokacijaOpis,
+                        uuid: (el.stevci_cestaOpis + '-' + el.stevci_lokacijaOpis).replace(/\s+/g, ''),
+                    };
 
                     // does this place already exist?
-                    const place = places.filter(x => x.uuid === node_p.uuid);
+                    const place = places.filter((x) => x.uuid === node_p.uuid);
                     if (place.length === 0) {
-                        await this.SQLUtils.insertPlace("opendata.si_promet", node_p.uuid, node_p.title, node_p.x, node_p.y);
+                        await this.SQLUtils.insertPlace('opendata.si_promet', node_p.uuid, node_p.title, node_p.x, node_p.y);
                     };
 
                     // create all the nodes in this place
                     for (const counter of el.Data) {
                         // extract last metadata
-                        let node_c = JSON.parse(JSON.stringify(node_p));
+                        const node_c = JSON.parse(JSON.stringify(node_p));
                         node_c.uuid = counter.Id;
                         node_c.title +=
-                            "," + counter.properties.stevci_smerOpis +
-                            ", " + counter.properties.stevci_pasOpis;
+                            ',' + counter.properties.stevci_smerOpis +
+                            ', ' + counter.properties.stevci_pasOpis;
 
                         // insert node if needed
-                        const node = nodes.filter(x => x.uuid === node_c.uuid);
+                        const node = nodes.filter((x) => x.uuid === node_c.uuid);
                         if (node.length === 0) {
                             await this.SQLUtils.insertNode(node_c.uuid, node_p.uuid, node_c.title);
                             // insert also corresponding sensors
                             for (const type of this.sensor_types) {
-                                const uuid = node_c.uuid + "-" + type;
+                                const uuid = node_c.uuid + '-' + type;
                                 const title = uuid;
-                                console.log("Inserting: ", uuid);
+                                console.log('Inserting: ', uuid);
                                 await this.SQLUtils.insertSensor(uuid, node_c.uuid, type, title);
                             }
-                            console.log("Refreshing sensors");
+                            console.log('Refreshing sensors');
                             sensors = await this.SQLUtils.getSensors();
                         };
 
@@ -107,31 +107,31 @@ class OpendataSiPrometCrawler {
                             gap: parseFloat(p.stevci_gap),
                             speed: parseFloat(p.stevci_hit),
                             number: parseInt(p.stevci_stev),
-                            class: parseInt(p.stevci_stat)
-                        }
+                            class: parseInt(p.stevci_stat),
+                        };
 
                         // insert measurements
                         for (const type of this.sensor_types) {
                             // find sensor id
-                            const sensor_uuid = node_c.uuid + "-" + type;
-                            const sensor = sensors.filter(x => x.uuid === sensor_uuid);
+                            const sensor_uuid = node_c.uuid + '-' + type;
+                            const sensor = sensors.filter((x) => x.uuid === sensor_uuid);
                             if (sensor.length > 0) {
                                 const sensor_id = sensor[0].id;
                                 const value = values[type];
                                 // console.log("Sensor id:", sensor_id, "value:", value);
                                 insertSQL += this.SQLUtils.insertMeasurementSQL(sensor_id, ts, value);
                             } else {
-                                console.log("Sensor not found: ", sensor_uuid);
+                                console.log('Sensor not found: ', sensor_uuid);
                             }
                         };
                     };
                     // if (i > N) // }
                 }
-                console.log("Inserting measurements.");
+                console.log('Inserting measurements.');
                 await this.SQLUtils.processSQL(insertSQL);
-                console.log("Finishing inserting measurements.");
+                console.log('Finishing inserting measurements.');
             } else {
-                console.log("No new data.")
+                console.log('No new data.');
             }
 
             // update datalake repository with the crawled data
@@ -139,7 +139,7 @@ class OpendataSiPrometCrawler {
 
             CrawlerUtils.saveToDataLake(line, ts * 1000, {
                 dir: this.config.id,
-                name: "all",
+                name: 'all',
                 type: this.config.log_type,
             });
 
@@ -149,9 +149,8 @@ class OpendataSiPrometCrawler {
 
             // write final state
             CrawlerUtils.saveState(__dirname, this.state);
-
         } catch (e) {
-            console.log("ERROR:", e);
+            console.log('ERROR:', e);
         }
     }
 

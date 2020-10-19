@@ -34,11 +34,18 @@ crawlerConfigs.forEach((crawler) => {
 });
 
 // hardcoded loop
-async function runLoop() {
-    for (let crawler of crawlers) {
+const timeouts = {};
+crawlers.forEach(async (crawler) => {
+    async function runLoop() {
         await crawler.crawl();
     }
-};
-
-runLoop();
-let timeout = setInterval(runLoop, 5 * 60 * 1000);
+    runLoop();
+    if (crawler.config.update.includes('d')) {
+        timeouts[crawler.config.id] = (crawler.config.update.split('d')[0] * 24 * 60 * 60 * 1000);
+    } else if (crawler.config.update.includes('m')) {
+        timeouts[crawler.config.id] = (crawler.config.update.split('m')[0] * 60 * 1000);
+    } else if (crawler.config.update.includes('h')) {
+        timeouts[crawler.config.id] = (crawler.config.update.split('h')[0] * 60 * 60 * 1000);
+    }
+    setInterval(runLoop, timeouts[crawler.config.id]);
+});

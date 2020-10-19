@@ -1,0 +1,12 @@
+{
+    "id": "arso-weather",
+    "data-lake-type": "ldjson",
+    "log_type": "yearly",
+    "update": "1d",
+    "url_locations" : "https://meteo.arso.gov.si/webmet/archive/locations.xml?",
+    "url_data": "https://meteo.arso.gov.si/webmet/archive/data.xml?",
+    "variables" : [12,19,13,20,14,26,2,21,15,23,16,24,17,27,4,28,18,29],
+    "start_time" : "2020-08-12",
+    "station_type" : [4]
+}
+
