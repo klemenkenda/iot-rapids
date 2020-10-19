@@ -1,0 +1,27 @@
+[
+  {
+    "id": "pxweb1",
+    "data-lake-type": "ldjson",
+    "log_type": "yearly",
+    "update": "1d",
+    "url": "https://pxweb.stat.si:443/SiStatData/api/v1/sl/Data/1817601S.px",
+    "db_uuid": "energetika_elektricna_energija",
+    "short_db_name": "Električna energija",
+    "geo_metric_uuid": "obcina"
+  },
+  {
+    "id": "pxweb2",
+    "data-lake-type": "ldjson",
+    "log_type": "yearly",
+    "update": "1d",
+    "url": "https://pxweb.stat.si:443/SiStatData/api/v1/sl/Data/0700965S.px",
+    "db_uuid": "delovno_aktivno_prebivalstvo",
+    "short_db_name": "Delovno aktivno prebivalstvo",
+    "geo_metric_uuid": "obcina",
+    "restrictions": {
+        "SPOL": ["0"]
+    }
+  }
+]
+
+

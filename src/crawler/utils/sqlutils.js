@@ -127,6 +127,19 @@ class SQLUtils {
         }
     }
 
+    async getSensorTypes() {
+        try {
+            // retrieve places
+            const sql = `select * from rapids_iot.sensor_types`;
+            let data = await this.pool.query(sql);
+
+            return data.rows;
+        } catch(e) {
+            // display error and assume the link is down - repeat connecting to DB
+            console.log("Error", e);
+        }
+    }
+
     async insertSensor(uuid, node_uuid, sensor_type_uuid, title) {
         try {
             // sql
@@ -142,6 +155,25 @@ class SQLUtils {
         } catch (e) {
             // display error and assume the link is down - repeat connecting to DB
             console.log('Error', e);
+            return false;
+        };
+    }
+
+    async insertSensorType(uuid, phenomena, uom, description) {
+        try {
+            // sql
+            const sql = `
+                insert into rapids_iot.sensor_types (uuid, phenomena, uom, description)
+                values('${uuid}', '${phenomena}', '${uom}', '${description}')
+            `;
+
+            this.pool.query(sql);
+            console.log("Inserted sensor type: " + uuid);
+
+            return true;
+        } catch (e) {
+            // display error and assume the link is down - repeat connecting to DB
+            console.log("Error", e);
             return false;
         };
     }

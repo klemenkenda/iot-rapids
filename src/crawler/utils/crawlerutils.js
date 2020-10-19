@@ -2,6 +2,7 @@
 const fs = require('fs');
 const https = require('https');
 const request = require('request');
+const JSONstat = require('jsonstat-toolkit') // handline JSONstat format
 
 /**
  * A class for different utils for working with crawlers in
@@ -103,6 +104,22 @@ class CrawlerUtils {
     }
 
     /**
+     * Returns data from URL. Uses auxilary functin postURLPromise(url).
+     * See below.
+     *
+     * @param {string} url URL to post data to.
+     * @param {object} data JSON object to be posted.
+     */
+    static async postURL(url, data) {
+        try {
+            const result = await this.postURLPromise(url, data);
+            return result;
+        } catch (e) {
+            throw (e);
+        }
+    }
+
+    /**
      * Wrapper for getting the URL.
      *
      * @param {string} url URL address we are fetching.
@@ -157,6 +174,130 @@ class CrawlerUtils {
                 reject(e);
             });
         });
+    }
+
+    /**
+     * Wrapper for making a POST request to the URL with JSON.
+     *
+     * @param {string} url URL address we are posting the JSON object to.
+     * @param {object} json JSON object to be posted.
+     * @return {Promise} Promise to the fetched url data.
+     */
+    static postURLPromise(url, json) {
+        return new Promise((resolve, reject) => {
+            request.post(url, { json: json }, (_err, res, body) => {
+                if (_err !== null) {
+                    reject(new Error('Undefined error retrieving data, result is not defined:' + _err.Error));
+                }
+
+                if (res.statusCode !== 200) {
+                    reject(new Error('Wrong HTTP status code ' + res.statusCode));
+                }
+
+                resolve(body);
+            }).on('error', (e) => {
+                reject(e);
+            });
+        });
+    }
+
+
+    /**
+     * Wrapper for making a JSONStat request.
+     *
+     * @param {string} url URL address we are posting the JSON object to.
+     * @param {object} options JSONStat request options.
+     * @return {Promise} Promise to the fetched JSONStat dataset.
+     */
+    static JSONStatPromise(url, options) {
+        return new Promise((resolve, reject) => {
+            JSONstat(url, options).then((j) => {
+                resolve(j);
+            }).catch((e) => {
+                reject(e);
+            })
+        });
+    }
+
+    /**
+     * Builds a JSON-Stat query based on the table data from provided URL and field restrictions.
+     *
+     * @param {string} url URL address of the PxWeb table.
+     * @param {object} restrictions Object with field names as keys and arrays of values to be kept as values. The array can be empty in order to ignore a field.
+     * @return {object} The build query to be used to select required data from the table.
+     */
+    static async buildJSONStatQuery(url, restrictions) {
+        const rawData = await this.getURL(url);
+        const tableStructure = JSON.parse(rawData);
+        let query = {
+            "query": [
+            ],
+            "response": {
+              "format": "json-stat"
+            }
+        };
+        for (let variable of tableStructure.variables) {
+            let selection = {
+                "selection": {
+                  "filter": "item",
+                  "values": [
+                  ]
+                }
+            };
+            selection.code = variable.code;
+            if (restrictions === undefined || restrictions[variable.code] === undefined) {
+                selection.selection.values = variable.values;
+            } else {
+                selection.selection.values = restrictions[variable.code];
+            };
+            query.query.push(selection);
+        };
+        return query;
+    }
+
+    static getLabelDict(j, metric) {
+        return j.Dataset(0).__tree__.dimension[metric].category.label; // returns a dictionary of API's ID's mapped to human-readable names
+    }
+
+    static createSensorTypesFromJSONStat(DBuuid, shortDBName, j) {
+        // returns arrays of sensor type UIDs and sensor type names based on the input data.
+        // TODO: write tests
+
+        let sensorUIDs = [DBuuid];
+        let sensorNames = [shortDBName];
+
+        let columns = j.Dataset(0).role.classification;
+
+        if (columns.size == 0) console.error('Invalid dataset!');
+
+        function combine(previousUIDs, previousNames, columnDict) {
+            let outputUIDs = [];
+            let outputNames = [];
+            for (let i = 0; i < previousUIDs.length; i++) {
+                for (let key in columnDict) {
+                    outputUIDs.push(previousUIDs[i] + '-' + key);
+                    outputNames.push(previousNames[i] + ' 🡒 ' + columnDict[key]);
+                }
+            }
+            return [outputUIDs, outputNames];
+        }
+
+        for (var col of columns) {
+            const columnDict = CrawlerUtils.getLabelDict(j, col);
+            [sensorUIDs, sensorNames] = combine(sensorUIDs, sensorNames, columnDict);
+            /*
+            for (var key in cdict) {
+                var UIDs_tmp = [];
+                var names_tmp = [];
+                for (var i = 0; i < stypes.UIDs.length; i++) {
+                    UIDs_tmp.push(stypes.UIDs[i] + '-' + key);
+                    names_tmp.push(stypes.names[i] + '/' + cdict[key]);
+                }
+                stypes.UIDs = UIDs_tmp;
+                stypes.names = names_tmp;
+            }*/
+        }
+        return {uids: sensorUIDs, names: sensorNames, cols: columns};
     }
 
     /**
