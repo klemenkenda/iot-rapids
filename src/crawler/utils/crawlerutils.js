@@ -245,7 +245,7 @@ class CrawlerUtils {
                 }
             };
             selection.code = variable.code;
-            if (restrictions[variable.code] === undefined) {
+            if (restrictions === undefined || restrictions[variable.code] === undefined) {
                 selection.selection.values = variable.values;
             } else {
                 selection.selection.values = restrictions[variable.code];

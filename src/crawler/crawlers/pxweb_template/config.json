@@ -4,45 +4,23 @@
     "data-lake-type": "ldjson",
     "log_type": "yearly",
     "update": "1d",
-    "url": "https://pxweb.stat.si:443/SiStatDb/api/v1/sl/20_Ekonomsko/14_poslovni_subjekti/01_14188_podjetja/1418807S.px",
-    "db_uuid": "podjetja_obcine",
-    "short_db_name": "Podjetja po občinah",
-    "geo_metric_uuid": "obcina",
-    "restrictions": {
-    }
+    "url": "https://pxweb.stat.si:443/SiStatData/api/v1/sl/Data/1817601S.px",
+    "db_uuid": "energetika_elektricna_energija",
+    "short_db_name": "Električna energija",
+    "geo_metric_uuid": "obcina"
   },
   {
     "id": "pxweb2",
     "data-lake-type": "ldjson",
     "log_type": "yearly",
     "update": "1d",
-    "url": "https://pxweb.stat.si:443/SiStatDb/api/v1/sl/20_Ekonomsko/04_cene/04250_IUC/0425005S.px",
-    "db_uuid": "indeksi_uvoznih_neevro",
-    "short_db_name": "Indeksi uvoznih cen neevro območje (CPA 2015)",
+    "url": "https://pxweb.stat.si:443/SiStatData/api/v1/sl/Data/0700965S.px",
+    "db_uuid": "delovno_aktivno_prebivalstvo",
+    "short_db_name": "Delovno aktivno prebivalstvo",
     "geo_metric_uuid": "obcina",
     "restrictions": {
-      "INDEKS": [11]
+        "SPOL": ["0"]
     }
-  },
-  {
-    "id": "pxweb3",
-    "data-lake-type": "ldjson",
-    "log_type": "yearly",
-    "update": "1d",
-    "url": "https://pxweb.stat.si:443/SiStatDb/api/v1/sl/30_Okolje/18_energetika/03_18176_elektricna_energija/1817601S.px",
-    "db_uuid": "energetika_elektricna_energija",
-    "short_db_name": "Električna energija",
-    "geo_metric_uuid": "obcina"
-  },
-  {
-    "id": "pxweb4",
-    "data-lake-type": "ldjson",
-    "log_type": "yearly",
-    "update": "1d",
-    "url": "https://pxweb.stat.si:443/SiStatDb/api/v1/sl/30_Okolje/18_energetika/04_18180_goriva/1818002S.px",
-    "db_uuid": "energetika_bilanca_goriv",
-    "short_db_name": "Bilanca trdnih, tekočih in plinastih goriv",
-    "geo_metric_uuid": "obcina"
   }
 ]
 
